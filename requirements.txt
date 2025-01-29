@@ -1,0 +1,14 @@
+# Core dependencies
+tkinter  # Usually comes with Python
+pillow>=10.0.0  # For image handling if needed
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+
+# Development tools
+black>=23.7.0  # Code formatting
+pylint>=2.17.5  # Code analysis
+mypy>=1.5.1  # Type checking
+
+# Note: versions are suggested minimums
