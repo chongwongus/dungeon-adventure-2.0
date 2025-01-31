@@ -57,6 +57,28 @@ def test_warrior_combat():
         print("Miss!")
     print(f"Warrior HP: {warrior.hp}")
 
+    # Test multiple attack rounds to see blocking in action
+    print("\n=== Testing Blocking Mechanics ===")
+    for i in range(5):  # Test 5 rounds of attacks
+        print(f"\nRound {i+1}:")
+        print("Dummy attacks warrior!")
+        hit, damage = dummy.attack(warrior)
+        if hit:
+            old_hp = warrior.hp  # Store HP before damage
+            blocked = not warrior.take_damage(damage)  # take_damage returns True if damage was taken
+            if blocked:
+                print(f"BLOCKED! Warrior avoided {damage} damage!")
+            else:
+                hp_lost = old_hp - warrior.hp
+                print(f"Hit! Dealt {hp_lost} damage (Warrior HP: {warrior.hp})")
+        else:
+            print("Miss!")
+
+    print("\n=== Final Status ===")
+    print(warrior)
+    print(dummy)
+
+
 
 if __name__ == "__main__":
     test_warrior_combat()
