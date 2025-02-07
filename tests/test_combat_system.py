@@ -35,21 +35,12 @@ def test_combat_warrior():
         # Every third round, use special ability
         use_special = (round_num % 3 == 0)
         if use_special:
-            print("Warrior attempts Crushing Blow!")
+            print(f"{warrior.name} attempts Crushing Blow!")
 
         # Execute round and show results
         messages = combat.execute_round(use_special)
         for msg in messages:
             print(msg)
-
-        # Log detailed combat information
-        print(f"\nDetailed Combat Info:")
-        print(f"Warrior HP: {warrior.hp}/{warrior._max_hp}")
-        print(f"Ogre HP: {ogre.hp}/{ogre._max_hp}")
-        if ogre.hp < ogre._max_hp:
-            print(f"Ogre took {ogre._max_hp - ogre.hp} damage this round.")
-        if warrior.hp < warrior._max_hp:
-            print(f"Warrior took {warrior._max_hp - warrior.hp} damage this round.")
 
         round_num += 1
 
@@ -57,7 +48,6 @@ def test_combat_warrior():
         if round_num > 5:
             break
 
-    # Show final result
     print("\n=== Combat Ended ===")
     victor = combat.get_victor()
     if victor:
@@ -88,34 +78,25 @@ def test_combat_priestess():
         # Use healing every other round when below 75% health
         use_special = (round_num % 2 == 0 and priestess.hp < 60)
         if use_special:
-            print("Priestess attempts to heal!")
+            print(f"{priestess.name} attempts to heal!")
 
         # Execute round and show results
         messages = combat.execute_round(use_special)
         for msg in messages:
             print(msg)
 
-        # Log detailed combat information
-        print(f"\nDetailed Combat Info:")
-        print(f"Priestess HP: {priestess.hp}/{priestess._max_hp}")
-        print(f"Ogre HP: {skeleton.hp}/{skeleton._max_hp}")
-        if skeleton.hp < skeleton._max_hp:
-            print(f"Ogre took {skeleton._max_hp - skeleton.hp} damage this round.")
-        if priestess.hp < priestess._max_hp:
-            print(f"Priestess took {priestess._max_hp - priestess.hp} damage this round.")
-
         round_num += 1
 
-        # Break after 5 rounds for test brevity
+        # Optional: break after certain number of rounds
         if round_num > 5:
             break
 
-    print("\n=== Combat Ended ===")
-    victor = combat.get_victor()
-    if victor:
-        print(f"{victor.name} is victorious!")
-    else:
-        print("Combat continues...")
+        print("\n=== Combat Ended ===")
+        victor = combat.get_victor()
+        if victor:
+            print(f"{victor.name} is victorious!")
+        else:
+            print("Combat continues...")
 
 
 def test_combat_thief():
@@ -140,34 +121,25 @@ def test_combat_thief():
         # Try surprise attack every other round
         use_special = (round_num % 2 == 0)
         if use_special:
-            print("Thief attempts Surprise Attack!")
+            print(f"{thief.name} attempts Surprise Attack!")
 
         # Execute round and show results
         messages = combat.execute_round(use_special)
         for msg in messages:
             print(msg)
 
-        # Log detailed combat information
-        print(f"\nDetailed Combat Info:")
-        print(f"Thief HP: {thief.hp}/{thief._max_hp}")
-        print(f"Gremlin HP: {gremlin.hp}/{gremlin._max_hp}")
-        if gremlin.hp < gremlin._max_hp:
-            print(f"Gremlin took {gremlin._max_hp - gremlin.hp} damage this round.")
-        if thief.hp < thief._max_hp:
-            print(f"Thief took {thief._max_hp - thief.hp} damage this round.")
-
         round_num += 1
 
-        # Break after 5 rounds for test brevity
+        # Optional: break after certain number of rounds
         if round_num > 5:
             break
 
-    print("\n=== Combat Ended ===")
-    victor = combat.get_victor()
-    if victor:
-        print(f"{victor.name} is victorious!")
-    else:
-        print("Combat continues...")
+        print("\n=== Combat Ended ===")
+        victor = combat.get_victor()
+        if victor:
+            print(f"{victor.name} is victorious!")
+        else:
+            print("Combat continues...")
 
 
 if __name__ == "__main__":
