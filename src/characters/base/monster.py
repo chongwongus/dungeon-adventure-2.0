@@ -39,24 +39,18 @@ class Monster(DungeonCharacter, ABC):
         self._max_heal = max_heal
 
     def take_damage(self, amount: int) -> int:
-        """
-        Take damage and possibly heal.
-
-        Args:
-            amount: Amount of damage to take
-
-        Returns:
-            int: Amount healed (0 if no healing occurred)
-        """
-        # Take the damage first
+        """Take damage and possibly heal."""
+        old_hp = self.hp
         super().take_damage(amount)
+        damage_taken = old_hp - self.hp
 
-        # Only try to heal if still alive and didn't die from the damage
+        # Try to heal if still alive
         if self.is_alive and random.random() < self._heal_chance:
             heal_amount = random.randint(self._min_heal, self._max_heal)
             old_hp = self.hp
             self.hp += heal_amount
-            return self.hp - old_hp  # Return actual amount healed
+            actual_heal = self.hp - old_hp
+            return actual_heal
         return 0
 
     def __str__(self) -> str:

@@ -1,22 +1,24 @@
-from typing import Tuple, List
 import random
-from .dungeon_factory import DungeonFactory
+
 from .dungeon import Dungeon
+from .dungeon_factory import DungeonFactory
 from .room import Room
 
 
 class DFSDungeonFactory(DungeonFactory):
     """Creates dungeons using Depth-First Search algorithm for more complex mazes."""
 
-    def create(self, size: Tuple[int, int] = (8, 8)) -> Dungeon:
-        """Create a dungeon using DFS generation."""
+    def create(self, size=(8, 8)) -> Dungeon:
+        """Create dungeon using DFS generation."""
         self.dungeon = Dungeon(size)
+        self.initialize_maze()
         self.generate_maze_dfs()
+        self.add_random_connections()
+        self.populate_rooms(self.dungeon)
         return self.dungeon
 
-    def generate_maze_dfs(self) -> None:
-        """Generate maze structure using DFS for a fully connected maze."""
-        # Initialize maze grid
+    def initialize_maze(self) -> None:
+        """Initialize empty maze grid."""
         self.dungeon.maze = []
         for y in range(self.dungeon.size[1]):
             row = []
@@ -30,7 +32,8 @@ class DFSDungeonFactory(DungeonFactory):
         self.dungeon.maze[0][0].isEntrance = True
         self.dungeon.maze[self.dungeon.size[1] - 1][self.dungeon.size[0] - 1].isExit = True
 
-        # Generate paths using DFS
+    def generate_maze_dfs(self) -> None:
+        """Generate maze structure using DFS for a fully connected maze."""
         visited = set()
         stack = [self.dungeon.entrance]
 
@@ -66,9 +69,6 @@ class DFSDungeonFactory(DungeonFactory):
                 stack.append(next_cell)
             else:
                 stack.pop()
-
-        self.add_random_connections()
-        self.place_items(self.dungeon)
 
     def add_random_connections(self) -> None:
         """Add additional random connections to make maze more interesting."""

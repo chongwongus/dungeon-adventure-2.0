@@ -97,7 +97,8 @@ class DungeonCharacter(ABC):
 
     def take_damage(self, amount: int) -> None:
         """Take damage and update HP."""
-        self.hp = self.hp - amount
+        new_hp = max(0, self.hp - amount)  # Calculate new HP
+        self.hp = new_hp
 
     def __str__(self) -> str:
         return f"{self.name} (HP: {self.hp}/{self._max_hp})"

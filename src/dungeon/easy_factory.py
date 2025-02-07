@@ -1,22 +1,23 @@
-from typing import Tuple
 import random
-from .dungeon_factory import DungeonFactory
+
 from .dungeon import Dungeon
+from .dungeon_factory import DungeonFactory
 from .room import Room
 
 
 class EasyDungeonFactory(DungeonFactory):
     """Creates dungeons with simpler, more open layouts."""
 
-    def create(self, size: Tuple[int, int] = (8, 8)) -> Dungeon:
-        """Create a dungeon using random generation."""
+    def create(self, size=(8, 8)) -> Dungeon:
+        """Create dungeon using random generation."""
         self.dungeon = Dungeon(size)
+        self.initialize_maze()
         self.generate_maze_random()
+        self.populate_rooms(self.dungeon)
         return self.dungeon
 
-    def generate_maze_random(self) -> None:
-        """Generate a simpler maze structure with guaranteed path to exit."""
-        # Initialize maze grid
+    def initialize_maze(self) -> None:
+        """Initialize empty maze grid."""
         self.dungeon.maze = []
         for y in range(self.dungeon.size[1]):
             row = []
@@ -30,8 +31,9 @@ class EasyDungeonFactory(DungeonFactory):
         self.dungeon.maze[0][0].isEntrance = True
         self.dungeon.maze[self.dungeon.size[1] - 1][self.dungeon.size[0] - 1].isExit = True
 
+    def generate_maze_random(self) -> None:
+        """Generate a simpler maze structure with guaranteed path to exit."""
         self.create_connected_maze()
-        self.place_items(self.dungeon)
 
     def create_connected_maze(self) -> None:
         """Create a maze where every room is reachable."""

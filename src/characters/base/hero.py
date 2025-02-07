@@ -35,10 +35,15 @@ class Hero(DungeonCharacter):
         return self._pillars_found.copy()
 
     def take_damage(self, amount: int) -> bool:
+        """
+        Attempt to block damage, then take any unblocked damage.
+        Returns:
+            bool: True if damage was blocked
+        """
         if random.random() < self._block_chance:  # Successfully blocked
-            return False  # No damage taken
+            return True  # Successfully blocked (no damage taken)
         super().take_damage(amount)  # Block failed, take damage
-        return True
+        return False  # Damage was taken
 
     def use_healing_potion(self) -> Optional[int]:
         if self._healing_potions > 0:

@@ -1,6 +1,5 @@
 import sys
 import os
-# Add the src directory to the Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.characters.heroes.warrior import Warrior
