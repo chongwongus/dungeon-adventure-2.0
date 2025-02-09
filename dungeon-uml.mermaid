@@ -1,0 +1,110 @@
+classDiagram
+    %% Interfaces
+    class IInteractable {
+        <<interface>>
+        +interact(hero: Hero): void
+        +getDescription(): String
+    }
+
+    class ICollectible {
+        <<interface>>
+        +collect(hero: Hero): void
+        +isCollected(): boolean
+    }
+
+    class ICombatable {
+        <<interface>>
+        +takeDamage(amount: int): int
+        +isDefeated(): boolean
+    }
+
+    %% Abstract Base Classes
+    class Item {
+        <<abstract>>
+        -name: String
+        -description: String
+        #position: Point
+        +Item(name: String, description: String)
+        +getName(): String
+        +getDescription(): String
+        ~setPosition(x: int, y: int): void
+    }
+    
+    class DungeonCharacter {
+        <<abstract>>
+        #name: String
+        -maxHp: int
+        -currentHp: int
+        -minDamage: int
+        -maxDamage: int
+        #attackSpeed: int
+        -hitChance: float
+        ~position: Point
+        +isAlive(): boolean
+        +getLocation(): Point
+        #calculateAttacks(opponent: DungeonCharacter): int
+        +attack(opponent: DungeonCharacter): AttackResult
+        #takeDamage(amount: int): int
+        ~move(direction: Direction): void
+    }
+
+    class Hero {
+        <<abstract>>
+        -blockChance: float
+        -healingPotions: int
+        -visionPotions: int
+        -collectedPillars: List~String~
+        #attemptBlock(): boolean
+        +useHealingPotion(): Optional~int~
+        +useVisionPotion(): boolean
+        ~addToInventory(item: ICollectible): void
+        #hasAllPillars(): boolean
+        +abstract useSpecialAbility(target: ICombatable): AbilityResult
+    }
+
+    %% Concrete Classes
+    class Warrior {
+        -crushingBlowChance: float
+        -crushingBlowDamage: Range
+        +useSpecialAbility(target: ICombatable): AbilityResult
+    }
+
+    class Room {
+        -contents: Set~IInteractable~
+        -doors: Map~Direction, boolean~
+        -visited: boolean
+        -monster: Optional~Monster~
+        +addContent(item: IInteractable): void
+        +removeContent(item: IInteractable): void
+        +getDoorDirections(): Set~Direction~
+        ~spawnMonster(type: MonsterType): void
+        +getDisplaySymbol(): char
+    }
+
+    class CombatSystem {
+        -hero: Hero
+        -monster: Monster
+        -combatLog: List~String~
+        +executeRound(useSpecial: boolean): List~String~
+        +isCombatOver(): boolean
+        -calculateInitiative(): InitiativeOrder
+        +getVictor(): Optional~DungeonCharacter~
+    }
+
+    %% Relationships
+    DungeonCharacter <|-- Hero
+    DungeonCharacter <|-- Monster
+    Hero <|-- Warrior
+    Hero <|-- Priestess
+    Hero <|-- Thief
+    Monster <|-- Ogre
+    Monster <|-- Skeleton
+    Monster <|-- Gremlin
+    Item ..|> ICollectible
+    Item ..|> IInteractable
+    DungeonCharacter ..|> ICombatable
+    Room --* "1..1" Dungeon
+    Room o-- "0..1" Monster
+    Room o-- "*" IInteractable
+    CombatSystem o-- "1..1" Hero
+    CombatSystem o-- "1..1" Monster

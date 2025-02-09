@@ -84,14 +84,13 @@ class DungeonCharacter(ABC):
 
     def attack(self, opponent: 'DungeonCharacter') -> Tuple[bool, int]:
         """
-        Attempt to attack opponent.
+        Calculate attack damage but don't apply it.
 
         Returns:
-            Tuple of (hit_success, damage_dealt)
+            Tuple of (hit_success, damage_to_deal)
         """
         if random.random() < self._hit_chance:
             damage = random.randint(self._min_damage, self._max_damage)
-            opponent.take_damage(damage)
             return True, damage
         return False, 0
 
