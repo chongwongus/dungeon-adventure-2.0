@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 import random
 from typing import Tuple
+
+from src.configuration.dungeon_configuration_service import DungeonConfigurationService
 from .room import Room
 from .dungeon import Dungeon
 
@@ -13,7 +15,7 @@ class DungeonFactory(ABC):
         """Create a dungeon with the specified size."""
         pass
 
-    def populate_rooms(self, dungeon: Dungeon) -> None:
+    def populate_rooms(self, dungeon: Dungeon, dungeonConfigurationService: DungeonConfigurationService) -> None:
         """
         Populate rooms with monsters and items.
         Order matters: place pillars first, then monsters, then other items.
@@ -22,7 +24,7 @@ class DungeonFactory(ABC):
         self.place_pillars(dungeon)
 
         # Then add monsters to rooms
-        self.place_monsters(dungeon)
+        dungeonConfigurationService.configure_monsters(dungeon)
 
         # Finally add other items
         self.place_items(dungeon)
