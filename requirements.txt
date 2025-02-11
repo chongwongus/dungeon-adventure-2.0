@@ -8,6 +8,7 @@ pytest-cov>=4.1.0
 # Development tools
 black>=23.7.0  # Code formatting
 mypy>=1.5.1  # Type checking
+injection>=5.2.1  # Dependency injection
 
 # Persistence
 sqlalchemy>=1.4.0  # ORM for database access
