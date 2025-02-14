@@ -14,7 +14,7 @@ class CombatSystem:
         self.basic_attack_handler = BasicAttackHandler()
         self.special_ability_handler = SpecialAbilityHandler()
 
-    def execute_round(self, use_special: bool = False) -> RoundResult:
+    def execute_round(self, use_special: bool = False, monster_only: bool = False) -> RoundResult:
         """Execute one full round of combat"""
         if not self.hero.is_alive or not self.monster.is_alive:
             return RoundResult(
