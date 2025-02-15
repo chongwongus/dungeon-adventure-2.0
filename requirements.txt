@@ -5,13 +5,14 @@ pillow>=10.0.0  # For image handling if needed
 pytest>=7.4.0
 pytest-cov>=4.1.0
 
+# Utilities
+aspectlib>=2.0.0  # For aspect-oriented programming
+
 # Development tools
 black>=23.7.0  # Code formatting
 mypy>=1.5.1  # Type checking
-injection>=5.2.1  # Dependency injection
 
 # Persistence
 sqlalchemy>=1.4.0  # ORM for database access
-sqllite>=3.35.0  # Database for configuration
 
 # Note: versions are suggested minimums
