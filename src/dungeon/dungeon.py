@@ -1,5 +1,7 @@
+# src/dungeon/dungeon.py
 from typing import Tuple, Optional, List
 from .room import Room
+import random
 
 
 class Dungeon:
@@ -43,15 +45,14 @@ class Dungeon:
             return self.maze[y][x]
         return None
 
-    def is_valid_move(self, current_pos: Tuple[int, int], direction: str) -> bool:
-        """Check if move from current position in given direction is valid."""
+    def get_room_in_direction(self, current_pos: Tuple[int, int], direction: str) -> Optional[Tuple[int, int]]:
+        """
+        Get coordinates of room in given direction from current position.
+        Returns None if movement would be out of bounds.
+        """
         x, y = current_pos
-        current_room = self.get_room(x, y)
-
-        if not current_room or not current_room.doors[direction]:
-            return False
-
         new_x, new_y = x, y
+
         if direction == 'N':
             new_y -= 1
         elif direction == 'S':
@@ -61,12 +62,84 @@ class Dungeon:
         elif direction == 'W':
             new_x -= 1
 
-        if not (0 <= new_x < self.size[0] and 0 <= new_y < self.size[1]):
+        # Check if new position would be in bounds
+        if 0 <= new_x < self.size[0] and 0 <= new_y < self.size[1]:
+            return (new_x, new_y)
+        return None
+
+    def move_hero(self, hero, direction: str) -> bool:
+        """
+        Attempt to move hero in given direction.
+        Returns True if move was successful.
+        """
+        current_room = self.get_room(*hero.location)
+        if not current_room:
             return False
 
-        dest_room = self.get_room(new_x, new_y)
-        opposite = {'N': 'S', 'S': 'N', 'E': 'W', 'W': 'E'}
-        return dest_room.doors[opposite[direction]]
+        # Check if current room has door in that direction
+        if not current_room.doors[direction]:
+            return False
+
+        # Get new room coordinates
+        new_pos = self.get_room_in_direction(hero.location, direction)
+        if not new_pos:
+            return False
+
+        # Get new room and check if it has connecting door
+        new_room = self.get_room(*new_pos)
+        opposite_directions = {'N': 'S', 'S': 'N', 'E': 'W', 'W': 'E'}
+        if not new_room.doors[opposite_directions[direction]]:
+            return False
+
+        # Move is valid - update hero location and mark room as visited
+        hero.location = new_pos
+        new_room.visited = True
+
+        # Apply any room effects
+        self.apply_room_effects(hero)
+
+        return True
+
+    def apply_room_effects(self, hero) -> List[str]:
+        """
+        Apply effects of current room to hero.
+        Returns list of message strings describing what happened.
+        """
+        messages = []
+        room = self.get_room(*hero.location)
+
+        # Handle pit damage
+        if room.hasPit:
+            damage = random.randint(10, 20)  # Pit deals 10-20 damage
+            hero.take_damage(damage)
+            messages.append(f"You fell into a pit and took {damage} damage!")
+
+        # Handle item collection
+        if room.hasHealthPot:
+            hero.collect_potion("healing")
+            room.hasHealthPot = False
+            messages.append("You found a healing potion!")
+
+        if room.hasVisionPot:
+            hero.collect_potion("vision")
+            room.hasVisionPot = False
+            messages.append("You found a vision potion!")
+
+        if room.hasPillar:
+            hero.collect_pillar(room.pillarType)
+            room.hasPillar = False
+            messages.append(f"You found the {room.pillarType} pillar!")
+
+        return messages
+
+    def reveal_adjacent_rooms(self, center_pos: Tuple[int, int]) -> None:
+        """Mark all adjacent rooms as visited when using a vision potion."""
+        x, y = center_pos
+        # Check all adjacent positions
+        for dx, dy in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+            new_x, new_y = x + dx, y + dy
+            if 0 <= new_x < self.size[0] and 0 <= new_y < self.size[1]:
+                self.maze[new_y][new_x].visited = True
 
     def __str__(self) -> str:
         """Return string representation of entire dungeon."""
