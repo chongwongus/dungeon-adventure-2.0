@@ -73,11 +73,7 @@ class Dungeon:
         Returns True if move was successful.
         """
         current_room = self.get_room(*hero.location)
-        if not current_room:
-            return False
-
-        # Check if current room has door in that direction
-        if not current_room.doors[direction]:
+        if not current_room or not current_room.doors[direction]:
             return False
 
         # Get new room coordinates
@@ -91,13 +87,9 @@ class Dungeon:
         if not new_room.doors[opposite_directions[direction]]:
             return False
 
-        # Move is valid - update hero location and mark room as visited
-        hero.location = new_pos
+        # Move is valid - use character's move method
+        hero.move(direction)
         new_room.visited = True
-
-        # Apply any room effects
-        self.apply_room_effects(hero)
-
         return True
 
     def apply_room_effects(self, hero) -> List[str]:
