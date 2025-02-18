@@ -20,6 +20,7 @@ class Hero(DungeonCharacter):
         self._block_chance = block_chance
         self._healing_potions = 0
         self._vision_potions = 0
+        self._active_vision = False
         self._pillars_found: List[str] = []
 
     @property
@@ -33,6 +34,14 @@ class Hero(DungeonCharacter):
     @property
     def pillars(self) -> List[str]:
         return self._pillars_found.copy()
+
+    @property
+    def active_vision(self) -> bool:
+        return self._active_vision
+
+    @active_vision.setter
+    def active_vision(self, value: bool) -> None:
+        self._active_vision = value
 
     def take_damage(self, amount: int) -> bool:
         """
@@ -55,8 +64,10 @@ class Hero(DungeonCharacter):
         return None
 
     def use_vision_potion(self) -> bool:
+        """Use vision potion to reveal surrounding rooms."""
         if self._vision_potions > 0:
             self._vision_potions -= 1
+            self._active_vision = True
             return True
         return False
 
