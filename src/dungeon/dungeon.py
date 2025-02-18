@@ -72,24 +72,32 @@ class Dungeon:
         Attempt to move hero in given direction.
         Returns True if move was successful.
         """
+        if not hero.location:
+            return False
+
+        # Validate the move using door checks
         current_room = self.get_room(*hero.location)
         if not current_room or not current_room.doors[direction]:
             return False
 
-        # Get new room coordinates
+        # Calculate new position
         new_pos = self.get_room_in_direction(hero.location, direction)
         if not new_pos:
             return False
 
-        # Get new room and check if it has connecting door
+        # Check connecting door
         new_room = self.get_room(*new_pos)
         opposite_directions = {'N': 'S', 'S': 'N', 'E': 'W', 'W': 'E'}
         if not new_room.doors[opposite_directions[direction]]:
             return False
 
-        # Move is valid - use character's move method
+        # Move is valid - update position
         hero.move(direction)
         new_room.visited = True
+
+        # Apply room effects
+        self.apply_room_effects(hero)
+
         return True
 
     def apply_room_effects(self, hero) -> List[str]:
