@@ -85,19 +85,10 @@ class Dungeon:
         return None
 
     def move_hero(self, hero, direction: str) -> Tuple[bool, List[str], Optional[CombatSystem]]:
-        """
-        Attempt to move hero in given direction.
-        Returns:
-            - bool: Success of movement
-            - List[str]: Messages about what happened
-            - Optional[CombatSystem]: Combat system if combat initiated, None otherwise
-        """
-        messages = []
-
+        """Attempt to move hero in given direction."""
         if not hero.location:
-            return False, messages, None
+            return False, ["No current location!"], None
 
-        # Validate the move using door checks
         current_room = self.get_room(*hero.location)
         if not current_room or not current_room.doors[direction]:
             return False, ["You cannot move in that direction."], None
@@ -114,18 +105,11 @@ class Dungeon:
             return False, ["You cannot move in that direction."], None
 
         # Move is valid - update position
-        hero.move(direction)
+        hero.location = new_pos
         new_room.visited = True
 
-        # Handle vision potion if active
-        if hasattr(hero, 'active_vision') and hero.active_vision:
-            revealed = self.reveal_adjacent_rooms(hero.location)
-            messages.append(f"Vision potion revealed {len(revealed)} adjacent rooms!")
-            hero.active_vision = False
-
         # Apply room effects and get messages
-        effect_messages = self.apply_room_effects(hero)
-        messages.extend(effect_messages)
+        messages = self.apply_room_effects(hero)
 
         # Check for combat
         combat_system = None
@@ -136,12 +120,21 @@ class Dungeon:
         return True, messages, combat_system
 
     def apply_room_effects(self, hero) -> List[str]:
-        """
-        Apply effects of current room to hero.
-        Returns list of message strings describing what happened.
-        """
         messages = []
         room = self.get_room(*hero.location)
+
+        # Simplified location tracking
+        print(f"Player at {hero.location}")
+
+        # Handle pillar collection with minimal printing
+        if room.hasPillar:
+            print(f"Pillar {room.pillarType} found at {hero.location}")
+            if room.pillarType not in hero.pillars:
+                hero.collect_pillar(room.pillarType)
+                room.hasPillar = False
+                messages.append(f"You found the {room.pillarType} pillar!")
+            else:
+                messages.append(f"You've already collected the {room.pillarType} pillar.")
 
         # Handle pit damage
         if room.hasPit:
@@ -160,12 +153,17 @@ class Dungeon:
             room.hasVisionPot = False
             messages.append("You found a vision potion!")
 
+        # Handle pillar collection with more detailed feedback
         if room.hasPillar:
-            hero.collect_pillar(room.pillarType)
-            room.hasPillar = False
-            messages.append(f"You found the {room.pillarType} pillar!")
-            if len(hero.pillars) == 4:
-                messages.append("You have collected all the pillars! Make your way to the exit!")
+            print(f"Attempting to collect pillar: {room.pillarType}")
+            print(f"Current pillars: {hero.pillars}")
+            if room.pillarType not in hero.pillars:  # Only collect if we don't have it
+                hero.collect_pillar(room.pillarType)
+                room.hasPillar = False
+                messages.append(f"You found the {room.pillarType} pillar!")
+                print(f"Pillars after collection: {hero.pillars}")
+            else:
+                messages.append(f"You've already collected the {room.pillarType} pillar.")
 
         return messages
 

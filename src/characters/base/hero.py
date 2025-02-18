@@ -80,8 +80,12 @@ class Hero(DungeonCharacter):
 
     def collect_pillar(self, pillar_type: str) -> None:
         """Add pillar to collection if not already found."""
+        print(f"Hero attempting to collect pillar: {pillar_type}")  # Debug print
         if pillar_type not in self._pillars_found:
             self._pillars_found.append(pillar_type)
+            print(f"Pillar collected! Current pillars: {self._pillars_found}")  # Debug print
+        else:
+            print(f"Pillar {pillar_type} already in collection: {self._pillars_found}")  # Debug print
 
     @abstractmethod
     def special_skill(self, opponent: DungeonCharacter) -> Tuple[bool, str]:
