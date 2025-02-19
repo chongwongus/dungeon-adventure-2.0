@@ -1,301 +1,43 @@
 import pygame
-from typing import List, Optional, Dict, Any
-import time
+from typing import Optional
+import random
 
-from src.dungeon.room import Room
-
-# Constants
-WINDOW_WIDTH = 1024
-WINDOW_HEIGHT = 768
-MAIN_VIEW_WIDTH = int(WINDOW_WIDTH * 0.7)
-SIDE_PANEL_WIDTH = int(WINDOW_WIDTH * 0.3)
-LOG_HEIGHT = 300
-MINIMAP_SIZE = 250
-STATS_HEIGHT = 150
-
-# Colors
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
-GRAY = (128, 128, 128)
-RED = (255, 0, 0)
-DARK_GRAY = (32, 32, 32)
-
-
-class EventLog:
-    """Handles game event logging and display"""
-
-    def __init__(self, max_messages: int = 100):
-        self.messages: List[Dict[str, Any]] = []
-        self.max_messages = max_messages
-        self.scroll_position = 0
-        self.font = pygame.font.Font(None, 24)
-
-    def add_message(self, text: str, is_system: bool = False):
-        """Add a message to the log and print to console."""
-        message = {
-            'text': text,
-            'time': time.time(),
-            'is_system': is_system,
-            'color': RED if is_system else WHITE
-        }
-        self.messages.append(message)
-
-        # Print to console with appropriate formatting
-        if is_system:
-            print(f"\033[91m[SYSTEM] {text}\033[0m")  # Red text for system messages
-        else:
-            print(f"[EVENT] {text}")
-
-        if len(self.messages) > self.max_messages:
-            self.messages.pop(0)
-        # Auto-scroll to bottom
-        self.scroll_position = max(0, len(self.messages) - 10)
-
-    def draw(self, surface: pygame.Surface, rect: pygame.Rect):
-        """Draw the log on the given surface."""
-        # Draw background
-        pygame.draw.rect(surface, DARK_GRAY, rect)
-
-        # Calculate visible messages
-        messages_per_page = rect.height // 25  # Approximate line height
-        visible_messages = self.messages[self.scroll_position:
-                                         self.scroll_position + messages_per_page]
-
-        # Draw messages
-        y = rect.top + 5
-        for msg in visible_messages:
-            text = self.font.render(msg['text'], True, msg['color'])
-            surface.blit(text, (rect.left + 5, y))
-            y += 25
-
-
-class StatsDisplay:
-    """Handles player stats display including flashing health warning"""
-
-    def __init__(self):
-        self.font = pygame.font.Font(None, 28)
-        self.warning_flash = False
-        self.last_flash = 0
-        self.flash_interval = 500  # milliseconds
-
-    def draw(self, surface: pygame.Surface, rect: pygame.Rect, hero):
-        """Draw stats including flashing health warning if HP is low."""
-        pygame.draw.rect(surface, DARK_GRAY, rect)
-
-        # Calculate health percentage
-        health_percent = (hero.hp / hero._max_hp) * 100
-
-        # Update warning flash
-        current_time = pygame.time.get_ticks()
-        if health_percent <= 30:
-            if current_time - self.last_flash >= self.flash_interval:
-                self.warning_flash = not self.warning_flash
-                self.last_flash = current_time
-
-        # Draw health (flashing if low)
-        health_color = RED if health_percent <= 30 and self.warning_flash else WHITE
-        health_text = f"HP: {hero.hp}/{hero._max_hp}"
-        text = self.font.render(health_text, True, health_color)
-        surface.blit(text, (rect.left + 10, rect.top + 10))
-
-        # Draw inventory
-        inventory_y = rect.top + 40
-        potion_text = f"Health Potions: {hero.healing_potions}"
-        text = self.font.render(potion_text, True, WHITE)
-        surface.blit(text, (rect.left + 10, inventory_y))
-
-        vision_text = f"Vision Potions: {hero.vision_potions}"
-        text = self.font.render(vision_text, True, WHITE)
-        surface.blit(text, (rect.left + 10, inventory_y + 30))
-
-        # Draw pillars
-        pillar_text = f"Pillars: {', '.join(hero.pillars) if hero.pillars else 'None'}"
-        text = self.font.render(pillar_text, True, WHITE)
-        surface.blit(text, (rect.left + 10, inventory_y + 60))
-
-
-class MiniMap:
-    """Handles mini-map display with fog of war"""
-
-    def __init__(self, dungeon, pillar_locations):
-        self.dungeon = dungeon
-        self.pillar_locations = pillar_locations
-        self.font = pygame.font.Font(None, 20)
-
-        print("\n--- MINIMAP INITIALIZATION DEBUG ---")
-        print(f"Dungeon Size: {dungeon.size}")
-        print(f"Entrance: {dungeon.entrance}")
-        print(f"Exit: {dungeon.exit}")
-        for pillar, x, y in self.pillar_locations:
-            print(f"Room at ({x},{y}): Pillar {pillar}")
-        print("--- END MINIMAP INITIALIZATION DEBUG ---\n")
-
-        # Enhanced colors
-        self.UNEXPLORED = (20, 20, 20)  # Very dark gray
-        self.ROOM_BG = (60, 60, 60)  # Dark gray
-        self.CURRENT = (50, 255, 50)  # Bright green for player
-        self.ENTRANCE = (50, 150, 255)  # Blue
-        self.EXIT = (255, 50, 50)  # Red
-        self.DOOR = (255, 255, 255)  # White
-        self.PILLAR = (255, 215, 0)  # Gold
-        self.BORDER = (100, 100, 100)  # Medium gray
-
-    def calculate_room_size(self, rect: pygame.Rect) -> tuple[int, int]:
-        """Calculate room size based on map rect and dungeon dimensions."""
-
-        # Calculate available space (accounting for padding)
-        available_width = rect.width - 40  # 20px padding on each side
-        available_height = rect.height - 40
-
-        # Calculate room size to fit in available space
-        room_width = available_width // self.dungeon.size[0]
-        room_height = available_height // self.dungeon.size[1]
-
-        # Use smaller dimension to keep rooms square
-        room_size = min(room_width, room_height)
-
-        return room_size, room_size
-
-    def draw_door(self, surface: pygame.Surface, room_rect: pygame.Rect, direction: str):
-        """Draw a more visible door."""
-        door_width = max(4, room_rect.width // 8)
-        door_length = room_rect.height // 3
-
-        if direction == 'N':
-            door_rect = pygame.Rect(
-                room_rect.centerx - door_width // 2,
-                room_rect.top,
-                door_width,
-                door_length
-            )
-        elif direction == 'S':
-            door_rect = pygame.Rect(
-                room_rect.centerx - door_width // 2,
-                room_rect.bottom - door_length,
-                door_width,
-                door_length
-            )
-        elif direction == 'E':
-            door_rect = pygame.Rect(
-                room_rect.right - door_length,
-                room_rect.centery - door_width // 2,
-                door_length,
-                door_width
-            )
-        elif direction == 'W':
-            door_rect = pygame.Rect(
-                room_rect.left,
-                room_rect.centery - door_width // 2,
-                door_length,
-                door_width
-            )
-
-        pygame.draw.rect(surface, self.DOOR, door_rect)
-
-    def draw_player_marker(self, surface: pygame.Surface, room_rect: pygame.Rect):
-        """Draw a distinct player marker."""
-        marker_size = min(room_rect.width, room_rect.height) // 2
-        center_x = room_rect.centerx
-        center_y = room_rect.centery
-
-        # Draw a filled circle for the player
-        pygame.draw.circle(surface, self.CURRENT, (center_x, center_y), marker_size // 2)
-        # Add a white border to make it stand out
-        pygame.draw.circle(surface, WHITE, (center_x, center_y), marker_size // 2, 2)
-
-    def _log_pillar_locations(self, dungeon):
-        """Log pillar locations once during initialization."""
-        print("\n--- Minimap Pillar Locations ---")
-        for y in range(dungeon.size[1]):
-            for x in range(dungeon.size[0]):
-                room = dungeon.get_room(x, y)
-                if room.hasPillar:
-                    print(f"Minimap Pillar {room.pillarType} at ({x}, {y})")
-        print("--- End of Minimap Pillar Locations ---\n")
-
-    def draw(self, surface: pygame.Surface, rect: pygame.Rect, hero_pos: tuple[int, int], debug_log_minimap: bool = False):
-        """Draw the mini-map."""
-        # Draw background
-        pygame.draw.rect(surface, DARK_GRAY, rect)
-
-        # Calculate room size and offset
-        room_width, room_height = self.calculate_room_size(rect)
-        offset_x = rect.left + (rect.width - (room_width * self.dungeon.size[0])) // 2
-        offset_y = rect.top + (rect.height - (room_height * self.dungeon.size[1])) // 2
-
-        # Debug: Print calculated room size and offset
-        if debug_log_minimap:
-            print(f"Room size: {room_width}x{room_height}, Offset: ({offset_x}, {offset_y})")
-
-        # Draw rooms
-        for y in range(self.dungeon.size[1]):
-            for x in range(self.dungeon.size[0]):
-                room = self.dungeon.get_room(x, y)
-                room_rect = pygame.Rect(
-                    offset_x + x * room_width,
-                    offset_y + y * room_height,
-                    room_width,
-                    room_height
-                )
-
-                # Debug: Print room_rect for each room
-                if debug_log_minimap:
-                    print(f"Room at ({x}, {y}): {room_rect}")
-
-                # Determine room color and always show all rooms
-                if (x, y) == hero_pos:
-                    color = self.CURRENT
-                elif (x, y) == self.dungeon.entrance:
-                    color = self.ENTRANCE
-                elif (x, y) == self.dungeon.exit:
-                    color = self.EXIT
-                else:
-                    color = self.ROOM_BG
-
-                # Draw room with border
-                pygame.draw.rect(surface, color, room_rect)
-                pygame.draw.rect(surface, self.BORDER, room_rect, 2)
-
-                # Draw doors
-                for direction, has_door in room.doors.items():
-                    if has_door:
-                        self.draw_door(surface, room_rect, direction)
-
-        # Draw pillar indicators based on the pillar_locations list
-        for pillar, x, y in self.pillar_locations:
-            room_rect = pygame.Rect(
-                offset_x + x * room_width,
-                offset_y + y * room_height,
-                room_width,
-                room_height
-            )
-            # Debug: Print pillar room_rect
-            if debug_log_minimap:
-                print(f"Pillar {pillar} at ({x}, {y}): {room_rect}")
-
-            pillar_bg_rect = room_rect.inflate(-10, -10)  # Slightly smaller rect for background
-            pygame.draw.rect(surface, self.PILLAR, pillar_bg_rect)  # Draw yellow background
-            pillar_text = self.font.render(pillar, True, BLACK)
-            text_rect = pillar_text.get_rect(center=room_rect.center)
-            surface.blit(pillar_text, text_rect)  # Draw pillar text on top of the background
+from .constants import *
+from .components import EventLog, StatsDisplay, MiniMap, CombatUI
+from src.combat.combat_system import CombatSystem
 
 
 class GameWindow:
     """Main game window handler"""
 
-    def __init__(self, dungeon, pillar_locations):
+    def __init__(self, dungeon, pillar_locations, hero):
+        # Initialize pygame window
         self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pygame.display.set_caption("Dungeon Adventure")
 
-        # Store dungeon reference
+        # Store references
         self.dungeon = dungeon
+        self.hero = hero
 
-        # Initialize components
+        # Initialize UI components
         self.event_log = EventLog()
         self.stats_display = StatsDisplay()
         self.minimap = MiniMap(dungeon, pillar_locations)
+        self.combat_ui = CombatUI()
+
+        # Game state
+        self.in_combat = False
+        self.combat_system = None
+        self.selected_action = None
+        self.victory = False
+        self.death_screen_shown = False
+        self.final_death_screen = None
 
         # Define component rectangles
+        self._init_layout()
+
+    def _init_layout(self):
+        """Initialize UI layout rectangles"""
         self.main_view_rect = pygame.Rect(0, 0, MAIN_VIEW_WIDTH, WINDOW_HEIGHT)
         self.minimap_rect = pygame.Rect(
             MAIN_VIEW_WIDTH, 0,
@@ -310,15 +52,54 @@ class GameWindow:
             SIDE_PANEL_WIDTH, STATS_HEIGHT
         )
 
+    def update(self, hero):
+        """Update game state for each frame."""
+        # Update combat state if in combat
+        if self.in_combat and self.combat_system:
+            # Update any combat animations or effects
+            pass
+
+        # Update stats display flashing effect
+        self.stats_display.update()
+
+        # Check for game over condition
+        if not hero.is_alive and not self.death_screen_shown:
+            self.draw_game_over()
+
+        # Check for victory condition
+        if self.check_victory_condition(hero):
+            self.victory = True
+
     def handle_event(self, event: pygame.event.Event) -> bool:
         """Handle pygame events. Returns False if game should quit."""
         if event.type == pygame.QUIT:
             return False
-        elif event.type == pygame.KEYDOWN:
+
+        if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 return False
-            # Handle log scrolling
-            elif event.key == pygame.K_PAGEUP:
+            return self._handle_key_event(event)
+
+        if event.type == pygame.MOUSEBUTTONDOWN and self.in_combat:
+            return self._handle_combat_click(event.pos)
+
+        return True
+
+    def _handle_key_event(self, event: pygame.event.Event) -> bool:
+        """Handle keyboard input"""
+        if self.in_combat:
+            # Combat controls
+            if event.key in [pygame.K_1, pygame.K_KP1]:
+                return self.handle_combat_action("attack")
+            elif event.key in [pygame.K_2, pygame.K_KP2]:
+                return self.handle_combat_action("special")
+            elif event.key in [pygame.K_3, pygame.K_KP3]:
+                return self.handle_combat_action("potion")
+            elif event.key in [pygame.K_4, pygame.K_KP4]:
+                return self.handle_combat_action("run")
+        else:
+            # Log scrolling
+            if event.key == pygame.K_PAGEUP:
                 self.event_log.scroll_position = max(0, self.event_log.scroll_position - 1)
             elif event.key == pygame.K_PAGEDOWN:
                 self.event_log.scroll_position = min(
@@ -327,21 +108,204 @@ class GameWindow:
                 )
         return True
 
-    def update(self, hero):
-        """Update game state."""
-        pass  # Will be implemented as we add more features
+    def _handle_combat_click(self, pos) -> bool:
+        """Handle mouse clicks during combat"""
+        action = self.combat_ui.handle_click(pos)
+        if action:
+            self.selected_action = action
+            return self.handle_combat_action(action)
+        return True
+
+    def start_combat(self, hero, monster):
+        """Initialize combat with a monster"""
+        self.in_combat = True
+        self.combat_system = CombatSystem(hero, monster)
+        self.event_log.add_message(f"Combat started with {monster.name}!", True)
+
+    def end_combat(self, victor):
+        """End combat and handle results"""
+        self.in_combat = False
+        self.combat_system = None
+        self.selected_action = None
+        self.event_log.add_message(f"Combat ended! {victor.name} is victorious!")
+
+    def handle_combat_action(self, action: str) -> bool:
+        """Handle combat menu selection. Returns True if combat should continue."""
+        if not self.combat_system:
+            return False
+
+        result = self._execute_combat_action(action)
+        if result:
+            self._process_combat_result(result)
+
+        return self.in_combat
+
+    def _execute_combat_action(self, action: str) -> Optional[object]:
+        """Execute the selected combat action"""
+        if action == "attack":
+            return self.combat_system.execute_round(use_special=False)
+        elif action == "special":
+            return self.combat_system.execute_round(use_special=True)
+        elif action == "potion":
+            return self._handle_potion_use()
+        elif action == "run":
+            return self._handle_escape_attempt()
+        return None
+
+    def _handle_potion_use(self) -> Optional[object]:
+        """Handle using a healing potion"""
+        if self.hero.healing_potions > 0:
+            heal_amount = self.hero.use_healing_potion()
+            if heal_amount:
+                self.event_log.add_message(f"Used a healing potion and recovered {heal_amount} HP!")
+                return self.combat_system.execute_round(monster_only=True)
+        else:
+            self.event_log.add_message("No healing potions remaining!", True)
+        return None
+
+    def _handle_escape_attempt(self) -> Optional[object]:
+        """Handle attempt to run from combat"""
+        if random.random() < 0.4:  # 40% escape chance
+            self.event_log.add_message("Successfully escaped from combat!")
+            self.in_combat = False
+            return None
+        else:
+            self.event_log.add_message("Failed to escape!", True)
+            return self.combat_system.execute_round(monster_only=True)
+
+    def _process_combat_result(self, result):
+        """Process the results of a combat round"""
+        for action in result.actions:
+            self.event_log.add_message(action.message)
+
+        if self.combat_system.is_combat_over():
+            victor = self.combat_system.get_victor()
+
+            if not self.hero.is_alive:
+                self._handle_hero_death(victor)
+            else:
+                self._handle_monster_death(victor)
+
+    def _handle_hero_death(self, victor):
+        """Handle hero death in combat"""
+        self.event_log.add_message(f"Game Over! {self.hero.name} has fallen!", True)
+        self.end_combat(victor)
+
+    def _handle_monster_death(self, victor):
+        """Handle monster death in combat"""
+        self.event_log.add_message(f"Victory! {victor.name} has defeated the {self.combat_system.monster.name}!")
+        self.end_combat(victor)
+
+        # Process drops
+        current_room = self.dungeon.get_room(*self.hero.location)
+        drops = current_room.clear_monster()
+        for item in drops:
+            if item == "health_potion":
+                self.hero.collect_potion("healing")
+                self.event_log.add_message("Found a health potion!")
+            elif item == "vision_potion":
+                self.hero.collect_potion("vision")
+                self.event_log.add_message("Found a vision potion!")
+
+    def check_victory_condition(self, hero) -> bool:
+        """Check if the player has won"""
+        if hero.location == self.dungeon.exit and hero.has_all_pillars():
+            self.victory = True
+            self.event_log.add_message(
+                "Congratulations! You've collected all pillars and reached the exit!",
+                True
+            )
+            return True
+        return False
 
     def draw(self, hero, debug_log_minimap=False):
         """Draw the game window and all components."""
         self.screen.fill(BLACK)
 
-        # Draw main view background
-        pygame.draw.rect(self.screen, DARK_GRAY, self.main_view_rect)
+        if self.in_combat and self.combat_system:
+            self._draw_combat_screen()
+        else:
+            self._draw_normal_screen(hero, debug_log_minimap)
 
-        # Draw side panel components
+        if self.victory:
+            self._draw_victory_screen()
+
+        pygame.display.flip()
+
+    def _draw_combat_screen(self):
+        """Draw the combat interface"""
+        self.combat_ui.draw_combat_screen(
+            self.screen,
+            self.hero,
+            self.combat_system.monster,
+            self.selected_action
+        )
+
+    def _draw_normal_screen(self, hero, debug_log_minimap):
+        """Draw the normal game interface"""
+        pygame.draw.rect(self.screen, DARK_GRAY, self.main_view_rect)
         self.minimap.draw(self.screen, self.minimap_rect, hero.location, debug_log_minimap)
         self.event_log.draw(self.screen, self.log_rect)
         self.stats_display.draw(self.screen, self.stats_rect, hero)
 
-        # Update display
-        pygame.display.flip()
+    def _draw_victory_screen(self):
+        """Draw the victory overlay"""
+        overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT))
+        overlay.fill((0, 0, 0))
+        overlay.set_alpha(192)
+        self.screen.blit(overlay, (0, 0))
+
+        font = pygame.font.Font(None, 64)
+        text = font.render("Victory!", True, (255, 215, 0))
+        text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
+        self.screen.blit(text, text_rect)
+
+    def draw_game_over(self):
+        """Draw Dark Souls style death screen"""
+        if not self.death_screen_shown:
+            self._create_death_screen()
+        else:
+            self.screen.blit(self.final_death_screen, (0, 0))
+            pygame.display.flip()
+
+    def _create_death_screen(self):
+        """Create the death screen with fade effect"""
+        # Initial fade to black
+        overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT))
+        overlay.fill((0, 0, 0))
+
+        for alpha in range(0, 255, 5):
+            overlay.set_alpha(alpha)
+            self.screen.blit(overlay, (0, 0))
+            pygame.display.flip()
+            pygame.time.delay(20)
+
+        # Create and fade in text
+        font = pygame.font.Font(None, 120)
+        text = font.render("YOU DIED", True, (139, 0, 0))
+        text_bright = font.render("YOU DIED", True, (255, 0, 0))
+        text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
+
+        font_small = pygame.font.Font(None, 36)
+        restart_text = font_small.render("Press R to Restart or ESC to Quit", True, WHITE)
+        restart_rect = restart_text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT * 2 // 3))
+
+        for alpha in range(0, 255, 5):
+            self.screen.fill((0, 0, 0))
+
+            text_bright.set_alpha(alpha // 2)
+            self.screen.blit(text_bright, text_rect)
+
+            text.set_alpha(alpha)
+            self.screen.blit(text, text_rect)
+
+            if alpha > 128:
+                restart_text.set_alpha(alpha)
+                self.screen.blit(restart_text, restart_rect)
+
+            pygame.display.flip()
+            pygame.time.delay(20)
+
+        self.death_screen_shown = True
+        self.final_death_screen = self.screen.copy()
+

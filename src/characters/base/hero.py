@@ -17,6 +17,8 @@ class Hero(DungeonCharacter):
                  hit_chance: float,
                  block_chance: float):
         super().__init__(name, hp, min_damage, max_damage, attack_speed, hit_chance)
+
+        self.class_name = self.__class__.__name__
         self._block_chance = block_chance
         self._healing_potions = 0
         self._vision_potions = 0
