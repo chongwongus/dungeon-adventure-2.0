@@ -123,18 +123,16 @@ class Dungeon:
         messages = []
         room = self.get_room(*hero.location)
 
-        # Simplified location tracking
-        print(f"Player at {hero.location}")
+        # Clear player location tracking
+        print(f"\nPlayer at {hero.location}")  # Just show current location
 
-        # Handle pillar collection with minimal printing
+        # Handle pillar collection (only log when actually found)
         if room.hasPillar:
-            print(f"Pillar {room.pillarType} found at {hero.location}")
             if room.pillarType not in hero.pillars:
+                print(f"Found new Pillar {room.pillarType}!")
                 hero.collect_pillar(room.pillarType)
                 room.hasPillar = False
                 messages.append(f"You found the {room.pillarType} pillar!")
-            else:
-                messages.append(f"You've already collected the {room.pillarType} pillar.")
 
         # Handle pit damage
         if room.hasPit:

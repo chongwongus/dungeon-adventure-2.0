@@ -213,7 +213,7 @@ class MiniMap:
                     print(f"Minimap Pillar {room.pillarType} at ({x}, {y})")
         print("--- End of Minimap Pillar Locations ---\n")
 
-    def draw(self, surface: pygame.Surface, rect: pygame.Rect, hero_pos: tuple[int, int]):
+    def draw(self, surface: pygame.Surface, rect: pygame.Rect, hero_pos: tuple[int, int], debug_log_minimap: bool = False):
         """Draw the mini-map."""
         # Draw background
         pygame.draw.rect(surface, DARK_GRAY, rect)
@@ -222,6 +222,10 @@ class MiniMap:
         room_width, room_height = self.calculate_room_size(rect)
         offset_x = rect.left + (rect.width - (room_width * self.dungeon.size[0])) // 2
         offset_y = rect.top + (rect.height - (room_height * self.dungeon.size[1])) // 2
+
+        # Debug: Print calculated room size and offset
+        if debug_log_minimap:
+            print(f"Room size: {room_width}x{room_height}, Offset: ({offset_x}, {offset_y})")
 
         # Draw rooms
         for y in range(self.dungeon.size[1]):
@@ -233,6 +237,10 @@ class MiniMap:
                     room_width,
                     room_height
                 )
+
+                # Debug: Print room_rect for each room
+                if debug_log_minimap:
+                    print(f"Room at ({x}, {y}): {room_rect}")
 
                 # Determine room color and always show all rooms
                 if (x, y) == hero_pos:
@@ -261,6 +269,10 @@ class MiniMap:
                 room_width,
                 room_height
             )
+            # Debug: Print pillar room_rect
+            if debug_log_minimap:
+                print(f"Pillar {pillar} at ({x}, {y}): {room_rect}")
+
             pillar_bg_rect = room_rect.inflate(-10, -10)  # Slightly smaller rect for background
             pygame.draw.rect(surface, self.PILLAR, pillar_bg_rect)  # Draw yellow background
             pillar_text = self.font.render(pillar, True, BLACK)
@@ -319,7 +331,7 @@ class GameWindow:
         """Update game state."""
         pass  # Will be implemented as we add more features
 
-    def draw(self, hero):
+    def draw(self, hero, debug_log_minimap=False):
         """Draw the game window and all components."""
         self.screen.fill(BLACK)
 
@@ -327,7 +339,7 @@ class GameWindow:
         pygame.draw.rect(self.screen, DARK_GRAY, self.main_view_rect)
 
         # Draw side panel components
-        self.minimap.draw(self.screen, self.minimap_rect, hero.location)
+        self.minimap.draw(self.screen, self.minimap_rect, hero.location, debug_log_minimap)
         self.event_log.draw(self.screen, self.log_rect)
         self.stats_display.draw(self.screen, self.stats_rect, hero)
 

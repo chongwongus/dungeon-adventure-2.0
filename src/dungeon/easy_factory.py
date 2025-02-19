@@ -3,35 +3,17 @@ from .dungeon import Dungeon
 from .dungeon_factory import DungeonFactory
 from .room import Room
 
-
 class EasyDungeonFactory(DungeonFactory):
     """Creates dungeons with simpler, more open layouts."""
 
     def create(self, size=(8, 8)) -> Dungeon:
+        """Create dungeon using simple generation."""
         self.dungeon = Dungeon(size)
         self.initialize_maze()
         self.generate_maze_easy()
         self.ensure_critical_path()
         self.validate_connections()
-        self.populate_rooms(self.dungeon)
-
-        pillar_locations = {}
-        for y in range(self.dungeon.size[1]):
-            for x in range(self.dungeon.size[0]):
-                room = self.dungeon.get_room(x, y)
-                if room.hasPillar:
-                    pillar_locations[room.pillarType] = (x, y)
-
-        print("\n--- DETAILED Pillar Locations ---")
-        print(f"Dungeon Size: {self.dungeon.size}")
-        for pillar in Room.PILLARS:
-            if pillar in pillar_locations:
-                x, y = pillar_locations[pillar]
-                print(f"Pillar {pillar} at ({x}, {y})")
-        print(f"Entrance at {self.dungeon.entrance}")
-        print(f"Exit at {self.dungeon.exit}")
-        print("--- End of Detailed Pillar Locations ---\n")
-
+        self.populate_rooms(self.dungeon)  # This will also print layout
         return self.dungeon
 
     def initialize_maze(self) -> None:
@@ -50,52 +32,31 @@ class EasyDungeonFactory(DungeonFactory):
         self.dungeon.maze[self.dungeon.size[1] - 1][self.dungeon.size[0] - 1].isExit = True
 
     def generate_maze_easy(self) -> None:
-        """
-        Generate a simple maze structure ensuring good connectivity.
-        Uses a grid pattern with some random connections removed.
-        """
+        """Generate a simple maze structure ensuring good connectivity."""
         # First create a grid where every room connects to adjacent rooms
         for y in range(self.dungeon.size[1]):
             for x in range(self.dungeon.size[0]):
-                current_room = self.dungeon.maze[y][x]
-
                 # Connect to room to the east
                 if x < self.dungeon.size[0] - 1:
-                    current_room.doors['E'] = True
-                    self.dungeon.maze[y][x + 1].doors['W'] = True
-
+                    self.ensure_bidirectional_connection(self.dungeon, x, y, x + 1, y, 'E', 'W')
                 # Connect to room to the south
                 if y < self.dungeon.size[1] - 1:
-                    current_room.doors['S'] = True
-                    self.dungeon.maze[y + 1][x].doors['N'] = True
+                    self.ensure_bidirectional_connection(self.dungeon, x, y, x, y + 1, 'S', 'N')
 
         # Then randomly remove some connections while ensuring reachability
-        # We'll try to remove each connection with a 30% chance
         for y in range(self.dungeon.size[1]):
             for x in range(self.dungeon.size[0]):
-                current_room = self.dungeon.maze[y][x]
-
                 # Try to remove east connections
                 if x < self.dungeon.size[0] - 1 and random.random() < 0.3:
-                    # Temporarily remove connection
-                    current_room.doors['E'] = False
-                    self.dungeon.maze[y][x + 1].doors['W'] = False
-
-                    # If removing this connection would break reachability, restore it
+                    self.remove_connection(self.dungeon, x, y, x + 1, y, 'E', 'W')
                     if not self.dungeon.is_room_reachable(self.dungeon.entrance, self.dungeon.exit):
-                        current_room.doors['E'] = True
-                        self.dungeon.maze[y][x + 1].doors['W'] = True
+                        self.ensure_bidirectional_connection(self.dungeon, x, y, x + 1, y, 'E', 'W')
 
                 # Try to remove south connections
                 if y < self.dungeon.size[1] - 1 and random.random() < 0.3:
-                    # Temporarily remove connection
-                    current_room.doors['S'] = False
-                    self.dungeon.maze[y + 1][x].doors['N'] = False
-
-                    # If removing this connection would break reachability, restore it
+                    self.remove_connection(self.dungeon, x, y, x, y + 1, 'S', 'N')
                     if not self.dungeon.is_room_reachable(self.dungeon.entrance, self.dungeon.exit):
-                        current_room.doors['S'] = True
-                        self.dungeon.maze[y + 1][x].doors['N'] = True
+                        self.ensure_bidirectional_connection(self.dungeon, x, y, x, y + 1, 'S', 'N')
 
     def ensure_critical_path(self) -> None:
         """Ensure there's a clear path from entrance to exit."""
@@ -108,21 +69,21 @@ class EasyDungeonFactory(DungeonFactory):
 
             # Move horizontally first
             if current_x < target_x:
-                current_room.doors['E'] = True
-                self.dungeon.maze[current_y][current_x + 1].doors['W'] = True
+                self.ensure_bidirectional_connection(self.dungeon, current_x, current_y,
+                                                  current_x + 1, current_y, 'E', 'W')
                 current_x += 1
             elif current_x > target_x:
-                current_room.doors['W'] = True
-                self.dungeon.maze[current_y][current_x - 1].doors['E'] = True
+                self.ensure_bidirectional_connection(self.dungeon, current_x, current_y,
+                                                  current_x - 1, current_y, 'W', 'E')
                 current_x -= 1
             # Then move vertically
             elif current_y < target_y:
-                current_room.doors['S'] = True
-                self.dungeon.maze[current_y + 1][current_x].doors['N'] = True
+                self.ensure_bidirectional_connection(self.dungeon, current_x, current_y,
+                                                  current_x, current_y + 1, 'S', 'N')
                 current_y += 1
             elif current_y > target_y:
-                current_room.doors['N'] = True
-                self.dungeon.maze[current_y - 1][current_x].doors['S'] = True
+                self.ensure_bidirectional_connection(self.dungeon, current_x, current_y,
+                                                  current_x, current_y - 1, 'N', 'S')
                 current_y -= 1
 
     def validate_connections(self) -> None:
@@ -146,3 +107,4 @@ class EasyDungeonFactory(DungeonFactory):
                         # Fix inconsistency
                         current_room.doors['S'] = False
                         next_room.doors['N'] = False
+

@@ -5,7 +5,7 @@ from dungeon.dfs_factory import DFSDungeonFactory
 from characters.heroes.warrior import Warrior
 from characters.heroes.priestess import Priestess
 from characters.heroes.thief import Thief
-from gui.game_window import GameWindow
+from gui.game_window import GameWindow, MiniMap
 
 
 class GameState(Enum):
@@ -21,35 +21,40 @@ class DungeonGame:
     def __init__(self):
         pygame.init()
 
-        # Create initial dungeon and hero
-        factory = EasyDungeonFactory()
-        self.dungeon = factory.create()
-        self.hero = Warrior("Player")
-        self.hero.location = self.dungeon.entrance
-
-        # Initialize game window
-        self.game_window = GameWindow(self.dungeon, factory.pillar_locations)
-
-        # Initialize game state
+        # Initialize state variables
+        self.dungeon = None
+        self.hero = None
+        self.game_window = None
         self.state = GameState.MENU
 
         # Add movement cooldown
         self.last_move_time = 0
         self.move_cooldown = 200  # Milliseconds between moves
 
+        # Add a flag to track if debug logs should be printed
+        self.debug_log_minimap = False
+
+        # Start initial game
+        self.init_game(Warrior, EasyDungeonFactory)
 
     def init_game(self, hero_class, factory_class):
         """Initialize a new game with selected hero and dungeon factory."""
         # Create dungeon
-        factory = factory_class()
-        self.dungeon = factory.create()
+        factory = factory_class()  # Create factory instance
+        self.dungeon = factory.create()  # Create dungeon
 
         # Create hero
         self.hero = hero_class("Player")  # Can add name selection later
         self.hero.location = self.dungeon.entrance
 
-        # Update game window with new dungeon
-        self.game_window.dungeon = self.dungeon
+        # Initialize or update game window
+        if self.game_window is None:
+            self.game_window = GameWindow(self.dungeon, factory.pillar_locations)
+        else:
+            # Update existing window with new dungeon and pillar locations
+            self.game_window.dungeon = self.dungeon
+            self.game_window.minimap = MiniMap(self.dungeon, factory.pillar_locations)
+
         self.game_window.event_log.add_message("Welcome to Dungeon Adventure!")
 
         # Set initial game state
@@ -92,6 +97,9 @@ class DungeonGame:
             if direction:
                 success, messages, combat = self.dungeon.move_hero(self.hero, direction)
                 if success:
+                    # Set the debug_log_minimap flag to True
+                    self.debug_log_minimap = True
+
                     # Only log interesting findings in the new room
                     new_x, new_y = self.hero.location
                     new_room = self.dungeon.get_room(new_x, new_y)
@@ -146,11 +154,13 @@ class DungeonGame:
                 self.handle_menu()
             elif self.state == GameState.PLAYING:
                 self.handle_playing()
-            # Add other state handlers as we implement them
 
-            # Update and draw
+            # Update and draw every frame
             self.game_window.update(self.hero)
-            self.game_window.draw(self.hero)
+            self.game_window.draw(self.hero, self.debug_log_minimap)  # Pass debug_log_minimap here
+
+            # Reset the debug flag after drawing
+            self.debug_log_minimap = False
 
             # Cap frame rate
             clock.tick(120)
