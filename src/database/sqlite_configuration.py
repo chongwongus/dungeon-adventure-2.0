@@ -1,10 +1,13 @@
 import sqlite3
 from src.configuration import DungeonConfiguration
+from src.logging.start_up_logger import log_config_method_call
+
 
 class SqlLiteConfiguration(DungeonConfiguration):
     def __init__(self, db_name):
         self.db_name = db_name
-    
+
+    @log_config_method_call
     def __enter__(self):
         self.con = sqlite3.connect(self.db_name)
         return self
