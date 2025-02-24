@@ -8,20 +8,55 @@ class MenuState(Enum):
     DIFFICULTY_SELECT = 3
     PLAYING = 4
 
-
 class GameMenu:
     def __init__(self, screen):
         self.screen = screen
-        self.font_large = pygame.font.Font(None, 64)
-        self.font_medium = pygame.font.Font(None, 48)
-        self.font_small = pygame.font.Font(None, 32)
+        self.font_large = pygame.font.Font(None, 64)  # Title
+        self.font_medium = pygame.font.Font(None, 36)  # Hero names, buttons
+        self.font_small = pygame.font.Font(None, 24)   # Descriptions
 
         # Menu state
         self.selected_hero = None
         self.hero_options = [
-            {"class": "Warrior", "description": "High HP, Crushing Blow ability", "rect": None},
-            {"class": "Priestess", "description": "Healing ability, balanced stats", "rect": None},
-            {"class": "Thief", "description": "Fast attacks, Surprise Attack ability", "rect": None}
+            {
+                "class": "Warrior",
+                "description": "Tank",
+                "details": [
+                    "Health: 125 HP",
+                    "Attack Speed: Normal",
+                    "Special: Crushing Blow",
+                    "Block Chance: 20%",
+                    "Style: High damage, high health"
+                ],
+                "rect": None,
+                "hovered": False
+            },
+            {
+                "class": "Priestess",
+                "description": "Healer",
+                "details": [
+                    "Health: 75 HP",
+                    "Attack Speed: Fast",
+                    "Special: Healing",
+                    "Block Chance: 30%",
+                    "Style: Support, sustain damage"
+                ],
+                "rect": None,
+                "hovered": False
+            },
+            {
+                "class": "Thief",
+                "description": "Rogue",
+                "details": [
+                    "Health: 75 HP",
+                    "Attack Speed: Very Fast",
+                    "Special: Surprise Attack",
+                    "Block Chance: 40%",
+                    "Style: Quick strikes, high evasion"
+                ],
+                "rect": None,
+                "hovered": False
+            }
         ]
 
         # Input fields
@@ -39,6 +74,12 @@ class GameMenu:
         self.can_start = False
 
     def handle_event(self, event):
+        if event.type == pygame.MOUSEMOTION:
+            mouse_pos = pygame.mouse.get_pos()
+            # Update hover states
+            for hero in self.hero_options:
+                hero["hovered"] = hero["rect"] and hero["rect"].collidepoint(mouse_pos)
+
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouse_pos = pygame.mouse.get_pos()
 
@@ -108,10 +149,10 @@ class GameMenu:
 
             # Enhanced highlighting for selected hero
             if hero["class"] == self.selected_hero:
-                # Draw glowing border
+                # Draw glowing border with more subtle colors
                 glow_rect = hero_rect.inflate(6, 6)
-                pygame.draw.rect(self.screen, (200, 200, 0), glow_rect)  # Gold glow
-                pygame.draw.rect(self.screen, (255, 255, 0), hero_rect)  # Bright yellow background
+                pygame.draw.rect(self.screen, (120, 120, 40), glow_rect)  # Darker gold glow
+                pygame.draw.rect(self.screen, (100, 100, 30), hero_rect)  # Darker background
             else:
                 pygame.draw.rect(self.screen, (64, 64, 64), hero_rect)  # Normal background
 
@@ -133,6 +174,23 @@ class GameMenu:
 
             self.screen.blit(hero_text, (hero_rect.x + 30, hero_rect.y + 10))
             self.screen.blit(desc_text, (hero_rect.x + 30, hero_rect.y + 45))
+
+            # Draw details box when hovered - unified position for all classes
+            if hero["hovered"]:
+                base_y = hero_section.y + 20  # Fixed position at top of hero section
+                detail_box = pygame.Rect(
+                    hero_rect.x,
+                    base_y - 120,  # Position above the "Choose Your Hero" text
+                    300,  # Fixed width for details
+                    200   # Fixed height for details
+                )
+                pygame.draw.rect(self.screen, (32, 32, 32), detail_box)
+                pygame.draw.rect(self.screen, (128, 128, 128), detail_box, 2)
+
+                # Draw details
+                for i, detail in enumerate(hero["details"]):
+                    detail_text = self.font_small.render(detail, True, (255, 255, 255))
+                    self.screen.blit(detail_text, (detail_box.x + 10, detail_box.y + 10 + i * 30))
 
         # Draw settings section (right side)
         settings_section = pygame.Rect(

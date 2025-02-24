@@ -3,6 +3,7 @@ import time
 from typing import List, Dict, Any
 from ..constants import WHITE, RED, DARK_GRAY
 
+
 class EventLog:
     """Handles game event logging and display"""
 
@@ -10,15 +11,31 @@ class EventLog:
         self.messages: List[Dict[str, Any]] = []
         self.max_messages = max_messages
         self.scroll_position = 0
-        self.font = pygame.font.Font(None, 24)
 
-    def add_message(self, text: str, is_system: bool = False):
-        """Add a message to the log and print to console."""
+        # Load Action Man font if available, else fall back to system default
+        try:
+            self.font = pygame.font.Font("src/assets/fonts/ActionMan.ttf", 16)
+        except FileNotFoundError:
+            print("Could not load Action Man font, falling back to system default")
+            self.font = pygame.font.SysFont("arial", 16)
+
+        # Different colors for different message types
+        self.colors = {
+            'combat': (255, 180, 180),  # Light red for combat
+            'item': (180, 255, 180),  # Light green for items
+            'movement': (180, 180, 255),  # Light blue for movement
+            'system': (255, 255, 180),  # Light yellow for system messages
+            'default': WHITE
+        }
+
+    def add_message(self, text: str, message_type: str = 'default', is_system: bool = False):
+        """Add a message to the log with type-based formatting."""
         message = {
             'text': text,
             'time': time.time(),
+            'type': message_type,
             'is_system': is_system,
-            'color': RED if is_system else WHITE
+            'color': self.colors.get(message_type, self.colors['default'])
         }
         self.messages.append(message)
 
@@ -36,13 +53,53 @@ class EventLog:
         pygame.draw.rect(surface, DARK_GRAY, rect)
 
         # Calculate visible messages
-        messages_per_page = rect.height // 25  # Approximate line height
+        messages_per_page = rect.height // 20  # Reduced from 25 to 20 for better spacing
         visible_messages = self.messages[self.scroll_position:
-                                       self.scroll_position + messages_per_page]
+                                         self.scroll_position + messages_per_page]
 
         # Draw messages
         y = rect.top + 5
+        max_width = rect.width - 10  # Leave 5px padding on each side
+
         for msg in visible_messages:
-            text = self.font.render(msg['text'], True, msg['color'])
-            surface.blit(text, (rect.left + 5, y))
-            y += 25
+            # Word wrap text if it's too long
+            words = msg['text'].split()
+            lines = []
+            current_line = []
+
+            for word in words:
+                current_line.append(word)
+                test_line = ' '.join(current_line)
+                if self.font.size(test_line)[0] > max_width:
+                    if len(current_line) > 1:
+                        current_line.pop()
+                        lines.append(' '.join(current_line))
+                        current_line = [word]
+                    else:
+                        lines.append(test_line)
+                        current_line = []
+
+            if current_line:
+                lines.append(' '.join(current_line))
+
+            # Draw each line
+            for line in lines:
+                text = self.font.render(line, True, msg['color'])
+                surface.blit(text, (rect.left + 5, y))
+                y += 20
+
+                if y > rect.bottom - 20:
+                    break
+
+        # Draw scroll indicators if needed
+        if self.scroll_position > 0:
+            pygame.draw.polygon(surface, WHITE,
+                                [(rect.right - 15, rect.top + 5),
+                                 (rect.right - 5, rect.top + 5),
+                                 (rect.right - 10, rect.top + 15)])
+
+        if self.scroll_position + messages_per_page < len(self.messages):
+            pygame.draw.polygon(surface, WHITE,
+                                [(rect.right - 15, rect.bottom - 15),
+                                 (rect.right - 5, rect.bottom - 15),
+                                 (rect.right - 10, rect.bottom - 5)])
