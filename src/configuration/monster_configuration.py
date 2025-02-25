@@ -1,5 +1,5 @@
-from src.configuration import Configuration
+from src.configuration.dungeon_configuration import DungeonConfiguration
 
-class MonsterConfiguration(Configuration):
+class MonsterConfiguration(DungeonConfiguration):
     def configure(self, dungeon):
         pass

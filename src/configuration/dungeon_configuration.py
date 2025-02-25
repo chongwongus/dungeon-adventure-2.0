@@ -2,5 +2,5 @@ from abc import ABC
 
 class DungeonConfiguration(ABC):
     
-    def configure(dungeon):
+    def configure(self, dungeon):
         pass

@@ -1,8 +1,7 @@
 from ..base.monster import Monster
 
-
-class Gremlin(Monster):
-    """Fast attacker with frequent healing but low HP."""
+class Dragon(Monster):
+    """Slow attacker with low healing but lots of HP."""
 
     def __init__(self,
                  hp: int,
@@ -14,7 +13,7 @@ class Gremlin(Monster):
                  min_heal: int,
                  max_heal: int):
         super().__init__(
-            name="Gremlin",
+            name="Dragon",
             hp=hp,
             min_damage=min_damage,
             max_damage=max_damage,

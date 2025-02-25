@@ -1,4 +1,4 @@
-from src.database.sqlite_moster_configuration import SqliteMonsterConfiguration
+from src.database.sqlite_monster_configuration import SqliteMonsterConfiguration
 
 class DungeonConfigurationService:
     def __init__(self, dungeon_monster_configuration: SqliteMonsterConfiguration):
