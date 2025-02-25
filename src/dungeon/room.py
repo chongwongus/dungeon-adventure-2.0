@@ -58,7 +58,42 @@ class Room:
         if force or random.random() < 0.3:
             monster_types = [Ogre, Gremlin, Skeleton]
             monster_class = random.choice(monster_types)
-            self.monster = monster_class()
+
+            # Create monster with appropriate default values based on type
+            # PLACEHOLDER HARD CODED VALUES FOR NOW
+            if monster_class == Ogre:
+                self.monster = Ogre(
+                    hp=200,
+                    min_damage=30,
+                    max_damage=60,
+                    attack_speed=2,
+                    hit_chance=0.6,
+                    heal_chance=0.1,
+                    min_heal=30,
+                    max_heal=60
+                )
+            elif monster_class == Skeleton:
+                self.monster = Skeleton(
+                    hp=100,
+                    min_damage=30,
+                    max_damage=50,
+                    attack_speed=3,
+                    hit_chance=0.8,
+                    heal_chance=0.3,
+                    min_heal=30,
+                    max_heal=50
+                )
+            elif monster_class == Gremlin:
+                self.monster = Gremlin(
+                    hp=70,
+                    min_damage=15,
+                    max_damage=30,
+                    attack_speed=5,
+                    hit_chance=0.8,
+                    heal_chance=0.4,
+                    min_heal=20,
+                    max_heal=40
+                )
 
     def get_drops(self) -> List[str]:
         """

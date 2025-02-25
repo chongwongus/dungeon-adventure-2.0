@@ -4,6 +4,7 @@ import random
 
 from .constants import *
 from .components import EventLog, StatsDisplay, MiniMap, CombatUI
+from .components.first_person_view import FirstPersonView
 from src.combat.combat_system import CombatSystem
 
 
@@ -19,11 +20,15 @@ class GameWindow:
         self.dungeon = dungeon
         self.hero = hero
 
+        # Track hero's facing direction (start facing east)
+        self.hero_direction = 'E'
+
         # Initialize UI components
         self.event_log = EventLog()
         self.stats_display = StatsDisplay()
         self.minimap = MiniMap(dungeon, pillar_locations)
         self.combat_ui = CombatUI()
+        self.first_person_view = FirstPersonView(pygame.Rect(0, 0, MAIN_VIEW_WIDTH, WINDOW_HEIGHT))
 
         # Game state
         self.in_combat = False
@@ -98,6 +103,71 @@ class GameWindow:
             elif event.key in [pygame.K_4, pygame.K_KP4]:
                 return self.handle_combat_action("run")
         else:
+            # Simple directional movement (one room at a time)
+            if event.key == pygame.K_w or event.key == pygame.K_UP:
+                # Move one room north
+                current_room = self.dungeon.get_room(*self.hero.location)
+                if current_room.doors.get('N', False):  # Check if there's a door
+                    success, messages, combat = self.dungeon.move_hero(self.hero, 'N')
+                    self.hero_direction = 'N'  # Update facing direction for the view
+                    if success:
+                        self.event_log.add_message(f"Moved North", "movement")
+                        self._check_new_room()
+                    elif messages:
+                        for msg in messages:
+                            self.event_log.add_message(msg, "movement", True)
+                else:
+                    self.event_log.add_message("No door in that direction", "movement", True)
+                return True
+
+            elif event.key == pygame.K_s or event.key == pygame.K_DOWN:
+                # Move one room south
+                current_room = self.dungeon.get_room(*self.hero.location)
+                if current_room.doors.get('S', False):  # Check if there's a door
+                    success, messages, combat = self.dungeon.move_hero(self.hero, 'S')
+                    self.hero_direction = 'S'  # Update facing direction for the view
+                    if success:
+                        self.event_log.add_message(f"Moved South", "movement")
+                        self._check_new_room()
+                    elif messages:
+                        for msg in messages:
+                            self.event_log.add_message(msg, "movement", True)
+                else:
+                    self.event_log.add_message("No door in that direction", "movement", True)
+                return True
+
+            elif event.key == pygame.K_a or event.key == pygame.K_LEFT:
+                # Move one room west
+                current_room = self.dungeon.get_room(*self.hero.location)
+                if current_room.doors.get('W', False):  # Check if there's a door
+                    success, messages, combat = self.dungeon.move_hero(self.hero, 'W')
+                    self.hero_direction = 'W'  # Update facing direction for the view
+                    if success:
+                        self.event_log.add_message(f"Moved West", "movement")
+                        self._check_new_room()
+                    elif messages:
+                        for msg in messages:
+                            self.event_log.add_message(msg, "movement", True)
+                else:
+                    self.event_log.add_message("No door in that direction", "movement", True)
+                return True
+
+            elif event.key == pygame.K_d or event.key == pygame.K_RIGHT:
+                # Move one room east
+                current_room = self.dungeon.get_room(*self.hero.location)
+                if current_room.doors.get('E', False):  # Check if there's a door
+                    success, messages, combat = self.dungeon.move_hero(self.hero, 'E')
+                    self.hero_direction = 'E'  # Update facing direction for the view
+                    if success:
+                        self.event_log.add_message(f"Moved East", "movement")
+                        self._check_new_room()
+                    elif messages:
+                        for msg in messages:
+                            self.event_log.add_message(msg, "movement", True)
+                else:
+                    self.event_log.add_message("No door in that direction", "movement", True)
+                return True
+
             # Log scrolling
             if event.key == pygame.K_PAGEUP:
                 self.event_log.scroll_position = max(0, self.event_log.scroll_position - 1)
@@ -107,6 +177,49 @@ class GameWindow:
                     self.event_log.scroll_position + 1
                 )
         return True
+
+    def _check_new_room(self):
+        """Check for monsters, items, or other events in the new room"""
+        new_room = self.dungeon.get_room(*self.hero.location)
+
+        # Check for monsters first
+        if new_room.monster and new_room.monster.is_alive:
+            self.start_combat(self.hero, new_room.monster)
+            return
+
+        # Check for items and room features
+        messages = []
+
+        if new_room.hasPillar:
+            messages.append(f"You found the Pillar of {new_room.pillarType}!")
+
+        if new_room.hasHealthPot:
+            messages.append("You found a health potion!")
+
+        if new_room.hasVisionPot:
+            messages.append("You found a vision potion!")
+
+        if new_room.hasPit:
+            messages.append("There's a pit in this room!")
+
+        if new_room.isEntrance:
+            messages.append("This is the entrance to the dungeon.")
+
+        if new_room.isExit:
+            messages.append("This is the exit from the dungeon!")
+
+        for msg in messages:
+            self.event_log.add_message(msg)
+
+    def _turn_left(self):
+        """Turn the player 90 degrees to the left"""
+        turn_map = {'N': 'W', 'W': 'S', 'S': 'E', 'E': 'N'}
+        self.hero_direction = turn_map[self.hero_direction]
+
+    def _turn_right(self):
+        """Turn the player 90 degrees to the right"""
+        turn_map = {'N': 'E', 'E': 'S', 'S': 'W', 'W': 'N'}
+        self.hero_direction = turn_map[self.hero_direction]
 
     def _handle_combat_click(self, pos) -> bool:
         """Handle mouse clicks during combat"""
@@ -120,14 +233,14 @@ class GameWindow:
         """Initialize combat with a monster"""
         self.in_combat = True
         self.combat_system = CombatSystem(hero, monster)
-        self.event_log.add_message(f"Combat started with {monster.name}!", True)
+        self.event_log.add_message(f"Combat started with {monster.name}!", "combat", True)
 
     def end_combat(self, victor):
         """End combat and handle results"""
         self.in_combat = False
         self.combat_system = None
         self.selected_action = None
-        self.event_log.add_message(f"Combat ended! {victor.name} is victorious!")
+        self.event_log.add_message(f"Combat ended! {victor.name} is victorious!", "combat")
 
     def handle_combat_action(self, action: str) -> bool:
         """Handle combat menu selection. Returns True if combat should continue."""
@@ -157,26 +270,26 @@ class GameWindow:
         if self.hero.healing_potions > 0:
             heal_amount = self.hero.use_healing_potion()
             if heal_amount:
-                self.event_log.add_message(f"Used a healing potion and recovered {heal_amount} HP!")
+                self.event_log.add_message(f"Used a healing potion and recovered {heal_amount} HP!", "item")
                 return self.combat_system.execute_round(monster_only=True)
         else:
-            self.event_log.add_message("No healing potions remaining!", True)
+            self.event_log.add_message("No healing potions remaining!", "item", True)
         return None
 
     def _handle_escape_attempt(self) -> Optional[object]:
         """Handle attempt to run from combat"""
         if random.random() < 0.4:  # 40% escape chance
-            self.event_log.add_message("Successfully escaped from combat!")
+            self.event_log.add_message("Successfully escaped from combat!", "combat")
             self.in_combat = False
             return None
         else:
-            self.event_log.add_message("Failed to escape!", True)
+            self.event_log.add_message("Failed to escape!", "combat", True)
             return self.combat_system.execute_round(monster_only=True)
 
     def _process_combat_result(self, result):
         """Process the results of a combat round"""
         for action in result.actions:
-            self.event_log.add_message(action.message)
+            self.event_log.add_message(action.message, "combat")
 
         if self.combat_system.is_combat_over():
             victor = self.combat_system.get_victor()
@@ -188,12 +301,13 @@ class GameWindow:
 
     def _handle_hero_death(self, victor):
         """Handle hero death in combat"""
-        self.event_log.add_message(f"Game Over! {self.hero.name} has fallen!", True)
+        self.event_log.add_message(f"Game Over! {self.hero.name} has fallen!", "combat", True)
         self.end_combat(victor)
 
     def _handle_monster_death(self, victor):
         """Handle monster death in combat"""
-        self.event_log.add_message(f"Victory! {victor.name} has defeated the {self.combat_system.monster.name}!")
+        self.event_log.add_message(f"Victory! {victor.name} has defeated the {self.combat_system.monster.name}!",
+                                   "combat")
         self.end_combat(victor)
 
         # Process drops
@@ -202,10 +316,10 @@ class GameWindow:
         for item in drops:
             if item == "health_potion":
                 self.hero.collect_potion("healing")
-                self.event_log.add_message("Found a health potion!")
+                self.event_log.add_message("Found a health potion!", "item")
             elif item == "vision_potion":
                 self.hero.collect_potion("vision")
-                self.event_log.add_message("Found a vision potion!")
+                self.event_log.add_message("Found a vision potion!", "item")
 
     def check_victory_condition(self, hero) -> bool:
         """Check if the player has won"""
@@ -213,7 +327,7 @@ class GameWindow:
             self.victory = True
             self.event_log.add_message(
                 "Congratulations! You've collected all pillars and reached the exit!",
-                True
+                "system", True
             )
             return True
         return False
@@ -232,6 +346,49 @@ class GameWindow:
 
         pygame.display.flip()
 
+    def _draw_normal_screen(self, hero, debug_log_minimap):
+        """Draw the normal game interface"""
+        # Draw first-person view in the main area
+        self.first_person_view.draw(self.screen, self.dungeon, hero.location, self.hero_direction)
+
+        # Draw side panel UI components
+        self.minimap.draw(self.screen, self.minimap_rect, hero.location, debug_log_minimap)
+        self.event_log.draw(self.screen, self.log_rect)
+        self.stats_display.draw(self.screen, self.stats_rect, hero)
+
+        # Draw directional indicators at the bottom of the screen
+        self._draw_direction_indicator()
+
+    def _draw_direction_indicator(self):
+        """Draw a compass showing which direction the player is facing"""
+        # Define position at the bottom of the main view
+        x = self.main_view_rect.width // 2
+        y = self.main_view_rect.height - 40
+        radius = 30
+
+        # Draw circle background
+        pygame.draw.circle(self.screen, (40, 40, 40), (x, y), radius)
+        pygame.draw.circle(self.screen, (200, 200, 200), (x, y), radius, 2)
+
+        # Draw direction letters
+        font = pygame.font.Font(None, 24)
+        directions = {
+            'N': (x, y - radius + 10),
+            'E': (x + radius - 10, y),
+            'S': (x, y + radius - 10),
+            'W': (x - radius + 10, y)
+        }
+
+        for dir_letter, pos in directions.items():
+            # Current direction is highlighted
+            color = (255, 255, 0) if dir_letter == self.hero_direction else (150, 150, 150)
+            size = 28 if dir_letter == self.hero_direction else 24
+            dir_font = pygame.font.Font(None, size)
+
+            text = dir_font.render(dir_letter, True, color)
+            text_rect = text.get_rect(center=pos)
+            self.screen.blit(text, text_rect)
+
     def _draw_combat_screen(self):
         """Draw the combat interface"""
         self.combat_ui.draw_combat_screen(
@@ -240,13 +397,6 @@ class GameWindow:
             self.combat_system.monster,
             self.selected_action
         )
-
-    def _draw_normal_screen(self, hero, debug_log_minimap):
-        """Draw the normal game interface"""
-        pygame.draw.rect(self.screen, DARK_GRAY, self.main_view_rect)
-        self.minimap.draw(self.screen, self.minimap_rect, hero.location, debug_log_minimap)
-        self.event_log.draw(self.screen, self.log_rect)
-        self.stats_display.draw(self.screen, self.stats_rect, hero)
 
     def _draw_victory_screen(self):
         """Draw the victory overlay"""
@@ -308,4 +458,3 @@ class GameWindow:
 
         self.death_screen_shown = True
         self.final_death_screen = self.screen.copy()
-
