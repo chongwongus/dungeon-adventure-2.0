@@ -5,18 +5,63 @@ from ..constants import WHITE, BLACK, DARK_GRAY
 
 class MiniMap:
     """
-    Displays a top-down minimap of the dungeon with room information.
-    Shows the player's current location, visited rooms, and special
-    room contents like pillars, monsters, and traps.
+    Generates a dynamic, informative top-down dungeon map.
+
+    Serves as a critical navigation and information tool that
+    transforms the complex dungeon grid into an easily
+    comprehensible visual representation.
+
+    Core Mapping Responsibilities:
+    - Render dungeon room grid
+    - Track and display player location
+    - Visualize room contents and state
+    - Support exploration progression
+
+    Design Components:
+    1. Room Rendering System
+       - Calculate optimal room sizes
+       - Support variable dungeon dimensions
+       - Maintain visual consistency
+
+    2. Color-Coded Information
+       - Use distinct colors for different room states
+       - Provide instant visual feedback
+       - Communicate complex dungeon information at a glance
+
+    Visualization Strategies:
+    The minimap transforms abstract dungeon data into an
+    intuitive, information-rich visual representation that
+    helps players understand their environment quickly and
+    effectively.
     """
 
     def __init__(self, dungeon, pillar_locations):
         """
-        Initialize the minimap.
+        Initialize the minimap rendering system.
+
+        Sets up the foundational components for dungeon visualization:
+        - Store dungeon reference
+        - Track pillar locations
+        - Prepare font for room labeling
+        - Define a comprehensive color palette
+
+        Initialization Process:
+        1. Attempt to load custom font
+        2. Provide system font fallback
+        3. Create a rich color scheme for different room states
+
+        Color Palette Design:
+        - Unexplored rooms: Very dark gray
+        - Visited rooms: Dark gray
+        - Player location: Bright green
+        - Entrance: Blue
+        - Exit: Red
+        - Doors: White
+        - Special elements (pillars): Gold
 
         Args:
-            dungeon: The dungeon to display
-            pillar_locations: List of pillar locations
+            dungeon: The dungeon object to be visualized
+            pillar_locations: List of special pillar locations
         """
         self.dungeon = dungeon
         self.pillar_locations = pillar_locations
@@ -39,13 +84,29 @@ class MiniMap:
 
     def calculate_room_size(self, rect: pygame.Rect) -> Tuple[int, int]:
         """
-        Calculate room size based on map rect and dungeon dimensions.
+        Dynamically calculate optimal room size for minimap rendering.
+
+        This method ensures that:
+        - Rooms are consistently sized
+        - The entire map fits within the available space
+        - The aspect ratio remains square-like
+
+        Size Calculation Strategy:
+        1. Determine available width and height
+        2. Divide space by dungeon grid dimensions
+        3. Choose the smaller dimension to maintain square rooms
+        4. Add padding to prevent edge-to-edge rendering
+
+        Adaptive Rendering Considerations:
+        - Supports different dungeon sizes
+        - Maintains visual clarity
+        - Prevents room distortion
 
         Args:
-            rect: The rectangle area for the minimap
+            rect: The rectangular area allocated for the minimap
 
         Returns:
-            Tuple of (width, height) for each room
+            Tuple of (room_width, room_height)
         """
         available_width = rect.width - 40  # 20px padding on each side
         available_height = rect.height - 40
@@ -59,11 +120,21 @@ class MiniMap:
 
     def draw_door(self, surface: pygame.Surface, room_rect: pygame.Rect, direction: str):
         """
-        Draw a door in the specified direction.
+        Render door connections between rooms.
+
+        Implements a sophisticated door rendering system that:
+        - Represents room connectivity
+        - Uses minimal but clear visual indicators
+        - Supports all four cardinal directions
+
+        Door Rendering Techniques:
+        1. Calculate door width proportional to room size
+        2. Create door rectangles for each direction
+        3. Render doors with consistent styling
 
         Args:
-            surface: The surface to draw on
-            room_rect: The room rectangle
+            surface: Pygame surface for rendering
+            room_rect: Rectangle representing the room
             direction: Door direction ('N', 'S', 'E', 'W')
         """
         door_width = max(4, room_rect.width // 8)
@@ -85,11 +156,22 @@ class MiniMap:
 
     def draw_player_marker(self, surface: pygame.Surface, room_rect: pygame.Rect):
         """
-        Draw a distinct player marker.
+        Create a distinctive marker for the player's current location.
+
+        Designs a visual indicator that:
+        - Clearly shows player position
+        - Stands out from other room elements
+        - Provides immediate spatial awareness
+
+        Player Marker Design:
+        - Filled circle in distinctive color
+        - White border for contrast
+        - Centered in the room
+        - Sized proportionally to room dimensions
 
         Args:
-            surface: The surface to draw on
-            room_rect: The room rectangle where the player is
+            surface: Pygame surface for rendering
+            room_rect: Rectangle representing the player's current room
         """
         marker_size = min(room_rect.width, room_rect.height) // 2
         center = (room_rect.centerx, room_rect.centery)
@@ -101,13 +183,26 @@ class MiniMap:
     def draw(self, surface: pygame.Surface, rect: pygame.Rect, hero_pos: Tuple[int, int],
              debug_log_minimap: bool = False):
         """
-        Draw the mini-map.
+        Render the complete minimap visualization.
+
+        Comprehensive rendering method that:
+        1. Prepares the drawing surface
+        2. Calculates room sizes and positioning
+        3. Draws each room in the dungeon
+        4. Optionally logs debug information
+
+        Rendering Workflow:
+        - Set up background
+        - Compute room dimensions
+        - Iterate through dungeon grid
+        - Render each room with its current state
+        - Highlight player location
 
         Args:
-            surface: The surface to draw on
-            rect: The rectangle area for the minimap
-            hero_pos: (x, y) coordinates of the hero
-            debug_log_minimap: Whether to print debug info
+            surface: Pygame surface for rendering
+            rect: Rectangular area for minimap
+            hero_pos: Current player coordinates
+            debug_log_minimap: Flag to enable detailed logging
         """
         pygame.draw.rect(surface, DARK_GRAY, rect)
 
@@ -127,14 +222,28 @@ class MiniMap:
 
     def _draw_room(self, surface, x, y, room_width, room_height, offset_x, offset_y, hero_pos):
         """
-        Draw a single room with its contents.
+        Render an individual room with its specific state and contents.
+
+        This method is the core of the minimap's information display,
+        responsible for:
+        - Determining room color based on state
+        - Rendering room background
+        - Drawing doors
+        - Displaying room-specific content
+
+        Content Rendering Hierarchy:
+        1. Determine room color (unexplored, visited, current)
+        2. Draw room background
+        3. Render doors
+        4. Display special contents (pillars, monsters, items)
+        5. Add player marker if applicable
 
         Args:
-            surface: The surface to draw on
-            x, y: Room coordinates
-            room_width, room_height: Size of each room
-            offset_x, offset_y: Screen position offset
-            hero_pos: Position of the hero
+            surface: Pygame surface for rendering
+            x, y: Room grid coordinates
+            room_width, room_height: Dimensions of each room
+            offset_x, offset_y: Positioning offsets
+            hero_pos: Current player location
         """
         room = self.dungeon.get_room(x, y)
         room_rect = pygame.Rect(
@@ -219,10 +328,22 @@ class MiniMap:
 
     def _log_debug_info(self, hero_pos):
         """
-        Log debug information about the current room.
+        Generate detailed debug information about the current room.
+
+        Provides comprehensive logging that:
+        - Prints player location
+        - Details room contents
+        - Supports development and testing
+
+        Logging Details:
+        - Current player coordinates
+        - Presence of pillars
+        - Health and vision potion locations
+        - Pit traps
+        - Monster presence
 
         Args:
-            hero_pos: Position of the hero
+            hero_pos: Current player location coordinates
         """
         print(f"\nPlayer at {hero_pos}")
         room = self.dungeon.get_room(*hero_pos)

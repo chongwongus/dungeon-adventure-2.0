@@ -6,7 +6,18 @@ from .special_attack_handler import SpecialAbilityHandler
 
 
 class CombatSystem:
-    """Manages combat between combatants using modular handlers"""
+    """
+    Manages combat interactions between heroes and monsters.
+
+    Coordinates the complex mechanics of turn-based combat,
+    utilizing modular attack handlers to process combat rounds.
+
+    Attributes:
+        hero (Combatant): Player's character
+        monster (Combatant): Current opponent
+        basic_attack_handler (BasicAttackHandler): Handles standard attacks
+        special_ability_handler (SpecialAbilityHandler): Manages special abilities
+    """
 
     def __init__(self, hero: Combatant, monster: Combatant):
         self.hero = hero
@@ -15,7 +26,20 @@ class CombatSystem:
         self.special_ability_handler = SpecialAbilityHandler()
 
     def execute_round(self, use_special: bool = False, monster_only: bool = False) -> RoundResult:
-        """Execute one full round of combat"""
+        """
+        Execute a complete round of combat.
+
+        Processes attacks for hero and monster, with options for:
+        - Using hero's special ability
+        - Monster-only turns
+
+        Args:
+            use_special (bool): Trigger hero's special ability
+            monster_only (bool): Execute only monster's turn
+
+        Returns:
+            RoundResult: Comprehensive details of the combat round
+        """
         if not self.hero.is_alive or not self.monster.is_alive:
             return RoundResult(
                 actions=[CombatAction(
@@ -72,11 +96,21 @@ class CombatSystem:
         )
 
     def is_combat_over(self) -> bool:
-        """Check if combat has ended"""
+        """
+        Determine if the current combat encounter has concluded.
+
+        Returns:
+            bool: True if either hero or monster has been defeated
+        """
         return not self.hero.is_alive or not self.monster.is_alive
 
     def get_victor(self) -> Optional[Combatant]:
-        """Return the winner of combat, if any"""
+        """
+        Identify the winner of the combat encounter.
+
+        Returns:
+            Optional[Combatant]: Winning character, or None if combat ongoing
+        """
         if not self.hero.is_alive:
             return self.monster
         elif not self.monster.is_alive:

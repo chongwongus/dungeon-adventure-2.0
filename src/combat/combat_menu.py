@@ -4,7 +4,21 @@ from .combat_logger import CombatLogger
 
 
 class CombatMenu:
-    """Handles the turn-based combat menu and player choices"""
+    """
+    Manages turn-based combat interactions and player choices.
+
+    Provides an interactive interface for combat, allowing players to:
+    - View current combat status
+    - Choose combat actions
+    - Use healing potions
+    - Attempt to escape
+    - Execute selected actions
+
+    Attributes:
+        combat (CombatSystem): Underlying combat system managing combat logic
+        hero (Hero): Player's character
+        monster (Monster): Current opponent
+    """
 
     def __init__(self, combat_system: CombatSystem):
         self.combat = combat_system
@@ -12,7 +26,14 @@ class CombatMenu:
         self.monster = combat_system.monster
 
     def display_status(self) -> None:
-        """Display current combat status"""
+        """
+        Display the current combat status for hero and monster.
+
+        Shows:
+        - Character names
+        - Health points (with visual health bar)
+        - Available potions
+        """
         print("\nCurrent Status:")
         print(f"{self.hero.name}:")
         print(
@@ -23,7 +44,16 @@ class CombatMenu:
             f"HP: {'█' * int(20 * self.monster.hp / self.monster._max_hp)}{'░' * int(20 * (1 - self.monster.hp / self.monster._max_hp))} {self.monster.hp}/{self.monster._max_hp}\n")
 
     def display_menu(self) -> None:
-        """Display combat options"""
+        """
+        Display available combat action options to the player.
+
+        Shows numbered menu of actions:
+        1. Attack
+        2. Special Attack
+        3. Use Healing Potion
+        4. Try to Run
+        5. View Status
+        """
         print("\nWhat would you like to do?")
         print("1. Attack")
         print("2. Special Attack")
@@ -33,8 +63,20 @@ class CombatMenu:
 
     def handle_choice(self, choice: str) -> Optional[List[str]]:
         """
-        Handle player's combat choice.
-        Returns combat messages if action was taken, None if just viewing status.
+        Process the player's selected combat action.
+
+        Handles different action types:
+        - Regular attack
+        - Special attack
+        - Healing potion use
+        - Escape attempt
+        - Status viewing
+
+        Args:
+            choice (str): Player's selected menu option
+
+        Returns:
+            Optional list of combat messages or None for status view
         """
         if choice == "1":  # Regular attack
             result = self.combat.execute_round(use_special=False)
@@ -77,7 +119,15 @@ class CombatMenu:
             return None
 
     def start_combat(self) -> None:
-        """Begin the turn-based combat encounter"""
+        """
+        Initiate and manage the entire combat encounter.
+
+        Handles the full combat loop, including:
+        - Initial combat display
+        - Player action selection
+        - Combat resolution
+        - Victory/defeat conditions
+        """
         print("\n" + "=" * 60)
         print(f"⚔️  {self.hero.name} vs {self.monster.name} ⚔️".center(60))
         print("=" * 60 + "\n")

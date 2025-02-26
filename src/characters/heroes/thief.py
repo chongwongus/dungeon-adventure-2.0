@@ -6,18 +6,31 @@ from ..base.dungeon_character import DungeonCharacter
 
 class Thief(Hero):
     """
-    Thief hero class - quick fighter with surprise attack ability.
+    Thief hero class - a quick, agile fighter specializing in speed and evasion.
 
     Stats:
-    - HP: 75
-    - Attack Speed: 6
-    - Hit Chance: 80%
-    - Block Chance: 40%
-    - Damage: 20-40
+    - HP: 75 (Lower health pool)
+    - Attack Speed: 6 (Fastest hero type)
+    - Hit Chance: 80% (High accuracy)
+    - Block Chance: 40% (Highest evasion)
+    - Damage: 20-40 (Lower damage per hit)
+
+    Special Ability: Surprise Attack - A risky maneuver with three possible outcomes:
+    - 40% chance: Land two attacks in one turn
+    - 20% chance: Get caught and miss the opportunity to attack
+    - 40% chance: Perform a normal attack
     """
 
     def __init__(self, name: str):
-        """Initialize thief with predefined stats."""
+        """
+        Initialize thief with predefined stats.
+
+        Creates a new Thief character with the given name and sets all
+        statistics to their predefined values as specified in the assignment.
+
+        Args:
+            name (str): The name of the Thief character
+        """
         super().__init__(
             name=name,
             hp=75,
@@ -30,13 +43,24 @@ class Thief(Hero):
 
     def special_skill(self, opponent: DungeonCharacter) -> Tuple[bool, str]:
         """
-        Surprise Attack:
-        - 40% chance: Get an extra attack
-        - 20% chance: Get caught (no attack)
-        - 40% chance: Normal attack
+        Surprise Attack: A high-risk, high-reward special ability.
+
+        The Thief attempts a sneaky attack with three possible outcomes:
+        1. Success (40% chance): The Thief gets two attacks in one turn,
+           potentially dealing double damage.
+        2. Caught (20% chance): The Thief is detected and fails to attack at all.
+        3. Normal (40% chance): The Thief performs a regular attack.
+
+        Each attack within the surprise attack is still subject to the
+        Thief's regular hit chance.
+
+        Args:
+            opponent (DungeonCharacter): The target of the surprise attack
 
         Returns:
-            Tuple of (success, message)
+            Tuple[bool, str]: A tuple containing:
+                - bool: True if at least one attack hit, False otherwise
+                - str: A message describing the outcome of the surprise attack
         """
         roll = random.random()
 
@@ -65,5 +89,13 @@ class Thief(Hero):
             return False, "Attack misses!"
 
     def __str__(self) -> str:
-        """Return string representation including class type."""
+        """
+        Return string representation including class type.
+
+        Extends the base Hero string representation by prefixing
+        the class name "Thief".
+
+        Returns:
+            str: String representation of the Thief character
+        """
         return f"Thief {super().__str__()}"

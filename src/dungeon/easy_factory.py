@@ -4,10 +4,48 @@ from .dungeon_factory import DungeonFactory
 from .room import Room
 
 class EasyDungeonFactory(DungeonFactory):
-    """Creates dungeons with simpler, more open layouts."""
+    """
+    Generates dungeons with a simpler, more straightforward layout strategy.
+
+    This factory creates dungeon layouts that are more predictable
+    and user-friendly, contrasting with more complex maze generation
+    approaches.
+
+    Key Generation Characteristics:
+    - Initial fully-connected grid creation
+    - Controlled randomness in path removal
+    - Guaranteed path between entrance and exit
+    - Simplified navigation experience
+
+    Methods provide a step-by-step approach to dungeon creation
+    that ensures playability while maintaining an element of surprise.
+    """
 
     def create(self, size=(8, 8)) -> Dungeon:
-        """Create dungeon using simple generation."""
+        """
+        Generate a complete dungeon using a simplified generation strategy.
+
+        This method orchestrates the entire dungeon creation process
+        through a series of carefully designed steps:
+
+        1. Initialize an empty dungeon grid
+        2. Generate a base maze structure
+        3. Ensure a critical path exists between entrance and exit
+        4. Validate room connections
+        5. Populate rooms with monsters, items, and pillars
+
+        The approach differs from DFS generation by:
+        - Creating a more grid-like initial structure
+        - Applying more controlled randomness
+        - Explicitly ensuring navigability
+
+        Args:
+            size (tuple, optional): Dimensions of the dungeon grid.
+                                    Defaults to an 8x8 grid.
+
+        Returns:
+            Dungeon: A fully generated and populated dungeon instance
+        """
         self.dungeon = Dungeon(size)
         self.initialize_maze()
         self.generate_maze_easy()
@@ -17,7 +55,19 @@ class EasyDungeonFactory(DungeonFactory):
         return self.dungeon
 
     def initialize_maze(self) -> None:
-        """Initialize empty maze grid."""
+        """
+        Set up the initial empty dungeon grid.
+
+        This method prepares the foundational structure for the dungeon by:
+        - Creating a 2D grid of empty Room instances
+        - Defining entrance at the top-left corner
+        - Setting exit at the bottom-right corner
+        - Marking entrance and exit rooms
+
+        The initial grid serves as a blank canvas for the
+        dungeon generation algorithm, providing a consistent
+        starting point for maze creation.
+        """
         self.dungeon.maze = []
         for y in range(self.dungeon.size[1]):
             row = []
@@ -32,7 +82,29 @@ class EasyDungeonFactory(DungeonFactory):
         self.dungeon.maze[self.dungeon.size[1] - 1][self.dungeon.size[0] - 1].isExit = True
 
     def generate_maze_easy(self) -> None:
-        """Generate a simple maze structure ensuring good connectivity."""
+        """
+        Create a maze structure with simplified connectivity rules.
+
+        This method generates the dungeon layout through a two-phase process:
+        1. Initial Connection Phase:
+           - Connect every room to its immediate neighbors
+           - Create a fully connected grid
+           - Establish east and south connections
+
+        2. Randomization Phase:
+           - Randomly remove some connections
+           - Ensure path between entrance and exit remains viable
+           - Introduce controlled unpredictability
+
+        Key Algorithm Steps:
+        - Start with a fully connected grid
+        - Apply 30% chance of connection removal
+        - Validate dungeon reachability after each removal
+        - Maintain a guaranteed path between entrance and exit
+
+        The approach creates a more predictable but still
+        interesting dungeon layout.
+        """
         # First create a grid where every room connects to adjacent rooms
         for y in range(self.dungeon.size[1]):
             for x in range(self.dungeon.size[0]):
@@ -59,7 +131,26 @@ class EasyDungeonFactory(DungeonFactory):
                         self.ensure_bidirectional_connection(self.dungeon, x, y, x, y + 1, 'S', 'N')
 
     def ensure_critical_path(self) -> None:
-        """Ensure there's a clear path from entrance to exit."""
+        """
+        Guarantee a clear path between dungeon entrance and exit.
+
+        This method creates a definitive route through the dungeon by:
+        - Starting at the entrance coordinates
+        - Moving systematically towards the exit
+        - Prioritizing horizontal movement first
+        - Then completing vertical movement
+        - Establishing bidirectional connections along the path
+
+        The algorithm ensures that:
+        - There's always a way to traverse the dungeon
+        - The path feels natural and less artificially constructed
+        - Players can always progress through the dungeon
+
+        Navigation Strategy:
+        1. Move horizontally towards exit x-coordinate
+        2. Move vertically towards exit y-coordinate
+        3. Create connections in each movement step
+        """
         # Create a path from entrance to exit
         current_x, current_y = self.dungeon.entrance
         target_x, target_y = self.dungeon.exit
@@ -87,7 +178,24 @@ class EasyDungeonFactory(DungeonFactory):
                 current_y -= 1
 
     def validate_connections(self) -> None:
-        """Validate that all door connections are bidirectional."""
+        """
+        Verify and correct dungeon room connections.
+
+        This method performs a comprehensive check of room connections to:
+        - Ensure bidirectional consistency
+        - Detect and correct connection mismatches
+        - Maintain the integrity of the dungeon layout
+
+        Validation Process:
+        - Check east-facing connections
+        - Verify south-facing connections
+        - Correct any unidirectional door instances
+        - Maintain symmetric room connections
+
+        By systematically validating connections, the method
+        prevents potential navigation issues and ensures a
+        logically consistent dungeon structure.
+        """
         for y in range(self.dungeon.size[1]):
             for x in range(self.dungeon.size[0]):
                 current_room = self.dungeon.maze[y][x]

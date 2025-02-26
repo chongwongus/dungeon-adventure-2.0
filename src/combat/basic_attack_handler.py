@@ -4,9 +4,35 @@ from .combat_action import CombatAction
 
 
 class BasicAttackHandler(CombatHandler):
-    """Handles basic attack sequences"""
+    """
+    Handles standard attack sequences in the combat system.
+
+    This handler manages basic attack mechanics for characters, processing:
+    - Multiple attacks based on attacker's speed
+    - Hit/miss probability
+    - Damage calculation
+    - Blocking mechanics
+    - Potential healing after attacks
+
+    The handler supports different character types (heroes and monsters)
+    and their unique combat interactions.
+    """
 
     def execute(self, attacker: Combatant, defender: Combatant) -> List[CombatAction]:
+        """
+        Execute a full sequence of basic attacks for the attacker.
+
+        Processes multiple attack attempts based on the attacker's speed,
+        handling different scenarios like successful hits, blocks, and misses.
+
+        Args:
+            attacker (Combatant): The character initiating attacks
+            defender (Combatant): The target of the attacks
+
+        Returns:
+            List[CombatAction]: Comprehensive list of attack actions
+        """
+
         actions = []
         num_attacks = attacker.get_num_attacks(defender)
 

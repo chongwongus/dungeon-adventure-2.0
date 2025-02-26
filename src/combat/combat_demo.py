@@ -16,14 +16,40 @@ from src.combat.combat_logger import CombatLogger
 
 
 def display_combat_header(hero_name: str, monster_name: str):
-    """Display an ASCII art header for the combat"""
+    """
+    Create a visually appealing header for the combat demonstration.
+
+    This function generates an ASCII-art style header that displays
+    the combatants' names, providing a dramatic introduction to the fight.
+
+    The header helps create a narrative context for the combat,
+    making the demonstration more engaging and immersive.
+
+    Args:
+        hero_name (str): Name of the hero character
+        monster_name (str): Name of the monster character
+    """
     print("\n" + "=" * 60)
     print(f"⚔️  {hero_name} vs {monster_name} ⚔️".center(60))
     print("=" * 60 + "\n")
 
 
 def display_stats(hero, monster):
-    """Display current stats of both combatants"""
+    """
+    Visualize the current health status of both combatants.
+
+    Creates a graphical representation of health points using block characters:
+    - Filled blocks (█) represent current health
+    - Empty blocks (░) represent missing health
+    - Displays exact HP values
+
+    This visualization provides an intuitive way to track
+    the combat progress and current health status.
+
+    Args:
+        hero: The player character
+        monster: The opponent character
+    """
     print(f"\n{hero.name}:")
     print(
         f"HP: {'█' * int(20 * hero.hp / hero._max_hp)}{'░' * int(20 * (1 - hero.hp / hero._max_hp))} {hero.hp}/{hero._max_hp}")
@@ -33,7 +59,26 @@ def display_stats(hero, monster):
 
 
 def demonstrate_combat(hero, monster, rounds: int = 5, use_special_every: int = 3):
-    """Run a demonstration combat between a hero and monster"""
+    """
+    Simulate a complete combat encounter between a hero and a monster.
+
+    This comprehensive demonstration function:
+    - Displays initial combat setup
+    - Executes combat rounds with optional special ability usage
+    - Provides round-by-round combat reporting
+    - Tracks and displays combat progress
+    - Determines and announces the victor
+
+    The function allows customization of:
+    - Total number of combat rounds
+    - Frequency of special ability usage
+
+    Args:
+        hero: The player character
+        monster: The opponent character
+        rounds (int, optional): Maximum number of combat rounds. Defaults to 5.
+        use_special_every (int, optional): Frequency of special ability usage. Defaults to 3.
+    """
     display_combat_header(hero.name, monster.name)
 
     print(f"Initial Status:")
@@ -75,7 +120,17 @@ def demonstrate_combat(hero, monster, rounds: int = 5, use_special_every: int = 
 
 
 def test_demonstrate_all_combinations():
-    """Show sample combats for each hero type against different monsters"""
+    """
+    Demonstrate combat scenarios for all hero types against different monsters.
+
+    This function creates a comprehensive showcase of:
+    - Warrior's high-health, high-damage approach (vs Ogre)
+    - Priestess's healing and sustain capabilities (vs Skeleton)
+    - Thief's speed and surprise attack mechanics (vs Gremlin)
+
+    Provides a holistic view of how different hero types interact
+    with various monster types, highlighting the nuanced combat system.
+    """
     heroes = [
         Warrior("Conan"),
         Priestess("Aerith"),
@@ -103,7 +158,17 @@ def test_demonstrate_all_combinations():
 
 
 def test_epic_battle():
-    """Demonstrate a longer, more epic battle between a warrior and ogre"""
+    """
+    Stage an extended, high-stakes battle between a Warrior and an Ogre.
+
+    Creates a prolonged combat scenario that:
+    - Demonstrates sustained combat mechanics
+    - Showcases Warrior's Crushing Blow ability
+    - Explores combat dynamics over multiple rounds
+    - Highlights the epic nature of dungeon combat
+
+    Features a longer battle with more frequent special ability usage.
+    """
     hero = Warrior("Conan")
     monster = Ogre()
 
@@ -115,7 +180,17 @@ def test_epic_battle():
 
 
 def test_healing_battle():
-    """Demonstrate a battle showcasing healing mechanics"""
+    """
+    Showcase the Priestess's healing mechanics in an extended combat.
+
+    Demonstrates the Priestess class by:
+    - Starting with reduced health
+    - Highlighting the healing special ability
+    - Showing how healing can turn the tide of battle
+    - Exploring sustainability in combat
+
+    Provides insight into the support-oriented playstyle of the Priestess.
+    """
     hero = Priestess("Aerith")
     monster = Skeleton()
 
@@ -126,7 +201,18 @@ def test_healing_battle():
 
 
 def test_speed_battle():
-    """Demonstrate a fast-paced battle between quick characters"""
+    """
+    Illustrate a fast-paced combat between quick characters.
+
+    Features a battle between:
+    - Thief (high speed, surprise attack)
+    - Gremlin (rapid, low-health monster)
+
+    Demonstrates:
+    - Impact of attack speed
+    - Importance of quick, decisive actions
+    - Unique mechanics of fast-moving combatants
+    """
     hero = Thief("Edwin")
     monster = Gremlin()
 

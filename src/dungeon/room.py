@@ -7,7 +7,32 @@ from src.characters.base.monster import Monster
 
 
 class Room:
-    """A single room in the dungeon."""
+    """
+    Represents a single location within the dungeon environment.
+
+    The Room class is a comprehensive state container that manages
+    all possible room configurations, contents, and interactions.
+
+    Key Design Characteristics:
+    - Flexible content management
+    - Randomized monster and item generation
+    - ASCII art representation
+    - Detailed state tracking for game mechanics
+
+    Class-Level Constants:
+    Provide visual representations for different room states:
+    - EMPTY: Represents an unoccupied room
+    - PIT: Indicates a trap room
+    - ENTRANCE/EXIT: Special location markers
+    - VISION/HEALTH POT: Item presence indicators
+    - MONSTER: Enemy presence marker
+
+    Core Attributes Track:
+    - Room contents (monsters, items, pillars)
+    - Directional doors
+    - Visited status
+    - Special room types
+    """
 
     # Room display characters
     EMPTY = ' '
@@ -23,7 +48,18 @@ class Room:
     PILLARS = ['A', 'E', 'I', 'P']  # The four Pillars of OO
 
     def __init__(self):
-        # Room state
+        """
+        Initialize a new room with default state.
+
+        Sets up the initial configuration for a room, including:
+        - No items or monsters by default
+        - Closed doors in all directions
+        - Unvisited status
+        - Placeholder for potential special contents
+
+        The constructor prepares a blank room state that can be
+        dynamically populated during dungeon generation.
+        """
         self.hasPit = False
         self.hasHealthPot = False
         self.hasVisionPot = False
@@ -46,9 +82,24 @@ class Room:
 
     def spawn_monster(self, force: bool = False) -> None:
         """
-        Attempt to spawn a monster in this room.
+        Attempt to spawn a monster in the room.
+
+        This method manages monster generation with sophisticated rules:
+        - 30% chance of monster spawn (or 100% if forced)
+        - Prevents spawning in entrance/exit rooms
+        - Randomly selects from different monster types
+        - Configures monster with type-specific attributes
+
+        Spawning Process:
+        1. Check room eligibility for monster
+        2. Determine spawn probability
+        3. Randomly select monster type
+        4. Create monster with predefined characteristics
+
         Args:
-            force: If True, guarantees a monster spawn
+            force (bool, optional):
+                Guarantees monster spawn if True.
+                Defaults to False.
         """
         # Don't spawn in entrance/exit or if already has monster
         if (self.isEntrance or self.isExit or self.monster) and not force:
@@ -97,9 +148,18 @@ class Room:
 
     def get_drops(self) -> List[str]:
         """
-        Roll for loot drops when monster is defeated.
+        Determine potential item drops when a monster is defeated.
+
+        Implements a probabilistic loot system:
+        - Health potion: 30% drop chance
+        - Vision potion: 20% drop chance
+        - Supports multiple potential drops
+
+        Randomization ensures varied player experiences
+        and adds an element of surprise to monster defeats.
+
         Returns:
-            List of items that dropped
+            List[str]: Items that were successfully dropped
         """
         drops = []
         for item, chance in self.loot_drops.items():
@@ -109,9 +169,15 @@ class Room:
 
     def clear_monster(self) -> List[str]:
         """
-        Remove monster and get drops.
+        Remove a defeated monster and collect its drops.
+
+        This method handles the end-of-combat room state:
+        - Checks if monster is defeated
+        - Collects potential item drops
+        - Removes monster from the room
+
         Returns:
-            List of dropped items
+            List[str]: Items dropped by the defeated monster
         """
         if self.monster and not self.monster.is_alive:
             drops = self.get_drops()
@@ -120,7 +186,26 @@ class Room:
         return []
 
     def get_room_display(self) -> str:
-        """Return char representing room contents."""
+        """
+        Generate a single-character representation of room contents.
+
+        Creates a visual shorthand that quickly communicates
+        the room's current state, including:
+        - Special room types (entrance, exit)
+        - Monster presence
+        - Multiple item indicators
+        - Specific item types
+
+        Prioritization Logic:
+        1. Special location markers (entrance/exit)
+        2. Monster presence
+        3. Multiple item indicator
+        4. Specific item types
+        5. Default empty state
+
+        Returns:
+            str: Single-character room state representation
+        """
         if self.isEntrance:
             return self.ENTRANCE
         if self.isExit:
@@ -146,7 +231,22 @@ class Room:
             return self.EMPTY
 
     def __str__(self) -> str:
-        """Return ASCII representation of room."""
+        """
+        Create an ASCII art representation of the room.
+
+        Generates a visual ASCII representation that shows:
+        - Directional doors
+        - Room contents
+        - Exploration state
+
+        The representation includes:
+        - Top border with door status
+        - Middle section with room contents
+        - Bottom border with door status
+
+        Returns:
+            str: Multi-line ASCII art room representation
+        """
         top = ' * ' + ('-' if self.doors['N'] else ' * ') + ' * '
         mid = (' | ' if self.doors['W'] else ' * ') + \
               (self.get_room_display() + ' ' if self.visited else ' ? ') + \

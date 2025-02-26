@@ -5,8 +5,16 @@ from .dungeon_character import DungeonCharacter
 
 class Monster(DungeonCharacter, ABC):
     """
-    Abstract base class for all monsters.
-    Extends DungeonCharacter with healing abilities.
+    Abstract base class for all monsters in the dungeon adventure game.
+
+    Monsters extend DungeonCharacter with healing capabilities, allowing them
+    to potentially recover hit points after taking damage. This class serves
+    as the foundation for specific monster types like Ogre, Skeleton, and Gremlin.
+
+    Attributes:
+        _heal_chance (float): Probability of healing after taking damage
+        _min_heal (int): Minimum amount of healing when triggered
+        _max_heal (int): Maximum amount of healing when triggered
     """
 
     def __init__(self,
@@ -23,15 +31,15 @@ class Monster(DungeonCharacter, ABC):
         Initialize monster attributes.
 
         Args:
-            name: Monster name
-            hp: Starting/max hit points
-            min_damage: Minimum damage dealt
-            max_damage: Maximum damage dealt
-            attack_speed: Speed determines number of attacks
-            hit_chance: Probability of landing an attack
-            heal_chance: Probability of healing after taking damage
-            min_heal: Minimum healing amount
-            max_heal: Maximum healing amount
+            name (str): Monster name
+            hp (int): Starting/max hit points
+            min_damage (int): Minimum damage dealt
+            max_damage (int): Maximum damage dealt
+            attack_speed (int): Speed determines number of attacks
+            hit_chance (float): Probability of landing an attack
+            heal_chance (float): Probability of healing after taking damage
+            min_heal (int): Minimum healing amount
+            max_heal (int): Maximum healing amount
         """
         super().__init__(name, hp, min_damage, max_damage, attack_speed, hit_chance)
         self._heal_chance = heal_chance
@@ -39,7 +47,19 @@ class Monster(DungeonCharacter, ABC):
         self._max_heal = max_heal
 
     def take_damage(self, amount: int) -> int:
-        """Take damage and possibly heal."""
+        """
+        Take damage and possibly heal afterwards.
+
+        Monsters have a chance to heal after taking damage, based on their
+        heal_chance attribute. Healing only occurs if the monster remains
+        alive after the damage is applied.
+
+        Args:
+            amount (int): Amount of damage to take
+
+        Returns:
+            int: Amount of healing done (0 if no healing occurred)
+        """
         old_hp = self.hp
         super().take_damage(amount)
         damage_taken = old_hp - self.hp
@@ -54,7 +74,15 @@ class Monster(DungeonCharacter, ABC):
         return 0
 
     def __str__(self) -> str:
-        """Return string representation including healing stats."""
+        """
+        Return string representation including healing stats.
+
+        Extends the base character string representation with
+        information about the monster's healing capabilities.
+
+        Returns:
+            str: String describing the monster and its healing abilities
+        """
         return (f"{super().__str__()} | "
                 f"Heal Chance: {self._heal_chance * 100}% | "
                 f"Heal Amount: {self._min_heal}-{self._max_heal}")

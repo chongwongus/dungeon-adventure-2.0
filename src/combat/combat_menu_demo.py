@@ -10,7 +10,47 @@ from src.combat.combat_menu import CombatMenu
 
 
 def demo_combat():
-    """Run an interactive combat demo"""
+    """
+    Interactive combat demonstration with user-driven character selection.
+
+    This function creates a comprehensive, interactive combat experience
+    that allows players to:
+    1. Choose a hero character
+    2. Select an opponent
+    3. Explore the combat system's depth
+
+    Detailed Flow:
+    - Present hero selection menu
+        - Warrior: High HP, powerful attacks
+        - Priestess: Healing abilities
+        - Thief: Fast, surprise attack specialist
+
+    - Present monster selection menu
+        - Ogre: High HP, slow
+        - Skeleton: Balanced
+        - Gremlin: Fast, low HP
+
+    - Prepare for combat
+        - Equip hero with healing potions
+        - Initialize combat system
+        - Launch interactive combat menu
+
+    Design Considerations:
+    - Provides a sandbox for exploring game mechanics
+    - Demonstrates character diversity
+    - Offers an intuitive introduction to the combat system
+
+    User Experience:
+    - Clear, guided selection process
+    - Informative character descriptions
+    - Immediate feedback
+    - Low-stakes environment for learning game mechanics
+
+    Potential Educational Value:
+    - Teach game systems
+    - Demonstrate character differences
+    - Encourage experimentation
+    """
     print("\nWelcome to the Combat Demo!")
     print("\nChoose your hero:")
     print("1. Warrior (High HP, Crushing Blow ability)")

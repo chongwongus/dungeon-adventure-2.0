@@ -4,9 +4,50 @@ from ..constants import *
 
 
 class FirstPersonView:
-    """Renders a first-person perspective of the dungeon"""
+    """
+    Renders an immersive first-person perspective of dungeon exploration.
+
+    This class transforms the abstract dungeon grid into a visually
+    engaging corridor view, creating a sense of depth and exploration.
+
+    Core Rendering Responsibilities:
+    - Generate perspective-based corridor view
+    - Render room contents dynamically
+    - Support multi-directional navigation
+    - Provide rich environmental details
+
+    Design Components:
+    1. Color Palette Management
+       - Define colors for environmental elements
+       - Create consistent visual theme
+
+    2. Perspective Rendering
+       - Generate trapezoid-based wall representations
+       - Create depth illusion
+
+    3. Room Content Visualization
+       - Dynamically render doors, monsters, items
+       - Support different room states
+    """
 
     def __init__(self, screen_rect: pygame.Rect):
+        """
+        Initialize the first-person view rendering system.
+
+        Sets up the foundational visual components:
+        - Define rendering area
+        - Establish color palette
+        - Prepare for future texture integration
+
+        Initialization Strategy:
+        - Use screen rectangle for precise rendering
+        - Define consistent color schemes
+        - Create placeholder for future texture enhancements
+
+        Args:
+            screen_rect (pygame.Rect):
+                Rectangular area for first-person view rendering
+        """
         self.rect = screen_rect
 
         # Color definitions
@@ -25,13 +66,27 @@ class FirstPersonView:
 
     def draw(self, surface: pygame.Surface, dungeon, hero_pos: Tuple[int, int], hero_direction: str):
         """
-        Draw the first-person view from the hero's perspective.
+        Render the complete first-person view of the current room.
+
+        Comprehensive rendering method that:
+        1. Clears previous view
+        2. Retrieves current room data
+        3. Draws basic corridor structure
+        4. Renders room-specific contents
+        5. Displays special room indicators
+
+        Rendering Workflow:
+        - Validate room existence
+        - Draw base corridor structure
+        - Render directional doors
+        - Display room-specific elements
+        - Add entrance/exit markers
 
         Args:
-            surface: Pygame surface to draw on
-            dungeon: Dungeon object with room data
-            hero_pos: (x, y) coordinates of hero
-            hero_direction: Direction hero is facing ('N', 'S', 'E', 'W')
+            surface: Pygame surface for rendering
+            dungeon: Dungeon object containing room data
+            hero_pos: Current hero coordinates
+            hero_direction: Direction hero is facing
         """
         # Clear the view area
         pygame.draw.rect(surface, BLACK, self.rect)
@@ -68,7 +123,23 @@ class FirstPersonView:
             self._draw_text(surface, "EXIT", (self.rect.centerx, 40))
 
     def _draw_corridor(self, surface: pygame.Surface):
-        """Draw the basic corridor structure (floor, ceiling, walls)"""
+        """
+        Generate the base corridor structure with perspective.
+
+        Creates a foundational corridor view by:
+        - Drawing ceiling and floor
+        - Rendering walls as trapezoid shapes
+        - Adding perspective lines
+        - Creating depth illusion
+
+        Perspective Rendering Techniques:
+        - Use trapezoid shapes for walls
+        - Add dividing lines
+        - Create visual depth through geometric manipulation
+
+        Args:
+            surface: Pygame surface for rendering corridor
+        """
         width, height = self.rect.width, self.rect.height
 
         # Draw ceiling
@@ -113,8 +184,24 @@ class FirstPersonView:
 
     def _get_relative_doors(self, room, hero_direction: str) -> Dict[str, bool]:
         """
-        Convert absolute door directions to relative (forward, left, right)
-        based on hero's facing direction
+        Convert absolute door directions to relative perspective.
+
+        Implements a dynamic direction mapping that:
+        - Adjusts door visibility based on hero's facing direction
+        - Provides consistent door representation
+        - Supports multi-directional navigation
+
+        Direction Mapping Strategy:
+        1. Define transformation matrix for different facing directions
+        2. Translate absolute directions to relative view
+        3. Return door presence from hero's perspective
+
+        Args:
+            room: Current room object
+            hero_direction: Hero's current facing direction
+
+        Returns:
+            Dictionary of relative door positions and their presence
         """
         # Map of how directions change based on facing
         direction_map = {
@@ -135,7 +222,24 @@ class FirstPersonView:
         }
 
     def _draw_doors(self, surface: pygame.Surface, room, hero_direction: str):
-        """Draw doors based on available exits and hero's facing direction"""
+        """
+        Render doors based on room configuration and hero's perspective.
+
+        Implements comprehensive door rendering that:
+        - Identifies available doors
+        - Draws doors in correct relative positions
+        - Supports multiple door orientations
+
+        Door Rendering Process:
+        1. Convert absolute to relative door directions
+        2. Identify doors in forward, left, and right positions
+        3. Render doors with perspective-correct positioning
+
+        Args:
+            surface: Pygame surface for rendering
+            room: Current room object
+            hero_direction: Hero's current facing direction
+        """
         width, height = self.rect.width, self.rect.height
 
         # Get available doors adjusted for hero's perspective
@@ -278,7 +382,24 @@ class FirstPersonView:
         self._draw_text(surface, label, (pos[0], pos[1] - 25))
 
     def _draw_text(self, surface: pygame.Surface, text: str, pos: Tuple[int, int]):
-        """Helper to draw text with shadow"""
+        """
+        Render text with shadow effect for enhanced readability.
+
+        Creates visually appealing text rendering by:
+        - Adding shadow for depth
+        - Ensuring high contrast
+        - Supporting various text placements
+
+        Text Rendering Strategy:
+        1. Render shadow slightly offset
+        2. Render primary text on top
+        3. Ensure high visibility in various contexts
+
+        Args:
+            surface: Pygame surface for rendering
+            text: Text to be displayed
+            pos: (x, y) position for text placement
+        """
         font = pygame.font.Font(None, 24)
 
         # Shadow

@@ -10,6 +10,25 @@ from gui.game_start_menu import GameMenu, MenuState
 
 
 class GameState(Enum):
+    """
+    Defines the possible states of the Dungeon Adventure game.
+
+    Provides a structured approach to managing game progression
+    and user interaction flow. Each state represents a specific
+    phase of the game experience.
+
+    Game State Progression:
+    1. MENU: Initial game setup and character selection
+    2. PLAYING: Active dungeon exploration
+    3. COMBAT: Ongoing battle interactions
+    4. GAME_OVER: Player character defeat
+    5. VICTORY: Successful game completion
+
+    Design Rationale:
+    - Enables clear state management
+    - Supports clean state transition logic
+    - Provides a comprehensive game flow model
+    """
     MENU = 1
     PLAYING = 2
     COMBAT = 3
@@ -18,14 +37,87 @@ class GameState(Enum):
 
 
 class DungeonGame:
+    """
+    Primary game controller for the Dungeon Adventure experience.
+
+    Serves as the central management system that coordinates
+    all aspects of game initialization, progression, and
+    state management.
+
+    Core Responsibilities:
+    1. Game Initialization
+       - Set up pygame environment
+       - Prepare initial game state
+       - Create UI components
+
+    2. State Management
+       - Handle menu interactions
+       - Manage gameplay progression
+       - Control game state transitions
+
+    3. User Interaction
+       - Process input events
+       - Coordinate game responses
+       - Manage movement and actions
+
+    Design Architecture:
+    - Event-driven game loop
+    - Modular state handling
+    - Flexible game configuration
+    - Responsive user interface
+
+    Key Methods:
+    - reset_game(): Reinitialize game state
+    - init_game(): Set up new game configuration
+    - handle_menu(): Manage menu interactions
+    - handle_playing(): Process active gameplay
+    - run(): Main game execution loop
+
+    Interaction Workflow:
+    The game progresses through different states, responding
+    to user inputs and game events, creating a dynamic and
+    engaging gameplay experience.
+    """
     def __init__(self):
+        """
+        Initialize the Dungeon Adventure game environment.
+
+        Sets up critical game components:
+        - Pygame initialization
+        - Display window creation
+        - Initial game state preparation
+
+        Initialization Strategy:
+        1. Initialize pygame system
+        2. Create game display window
+        3. Prepare initial game state
+        4. Set up game loop parameters
+
+        Game Setup Considerations:
+        - Consistent window sizing
+        - Proper pygame configuration
+        - Flexible game state management
+        """
         pygame.init()
         self.screen = pygame.display.set_mode((1024, 768))
         pygame.display.set_caption("Dungeon Adventure")
         self.reset_game()
 
     def reset_game(self):
-        """Reset all game state variables"""
+        """
+        Reset all game state variables to initial conditions.
+
+        Comprehensive game state reinitialization that:
+        - Clears existing game progress
+        - Resets to initial menu state
+        - Prepares for new game start
+
+        Reset Process:
+        1. Set game state to menu
+        2. Clear existing game objects
+        3. Reset time-based mechanics
+        4. Prepare for new game configuration
+        """
         self.state = GameState.MENU
         self.menu = GameMenu(self.screen)
         self.game_window = None
@@ -52,7 +144,26 @@ class DungeonGame:
         return True
 
     def init_game(self, settings):
-        # Create dungeon based on difficulty
+        """
+        Initialize a new game based on player configuration.
+
+        Comprehensive game setup process that:
+        - Selects dungeon generation strategy
+        - Creates hero character
+        - Initializes game window
+        - Prepares initial game state
+
+        Configuration Steps:
+        1. Choose dungeon generation method
+        2. Create hero based on player selection
+        3. Set up game window
+        4. Transition to playing state
+
+        Flexibility Considerations:
+        - Supports different difficulty levels
+        - Allows multiple hero types
+        - Enables dynamic game initialization
+        """
         factory_class = EasyDungeonFactory if settings['difficulty'] == 'easy' else DFSDungeonFactory
         factory = factory_class()
         self.dungeon = factory.create()
@@ -75,7 +186,20 @@ class DungeonGame:
         self.state = GameState.PLAYING
 
     def handle_menu(self):
-        """Handle menu state interactions."""
+        """
+        Manage interactions within the game's start menu.
+
+        Handles user interface and configuration selection:
+        - Process menu events
+        - Manage user selections
+        - Transition to game initialization
+
+        Menu Interaction Workflow:
+        1. Process pygame events
+        2. Handle menu interactions
+        3. Check for game start conditions
+        4. Render menu interface
+        """
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return False
@@ -99,7 +223,22 @@ class DungeonGame:
         return False
 
     def handle_playing(self):
-        """Handle playing state interactions."""
+        """
+        Manage active gameplay interactions and state.
+
+        Comprehensive method that:
+        - Processes user inputs
+        - Handles movement and actions
+        - Manages game state transitions
+        - Updates game display
+
+        Gameplay Management:
+        1. Process system events
+        2. Handle hero movement
+        3. Manage item usage
+        4. Check game-ending conditions
+        5. Update game window
+        """
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return False
@@ -157,7 +296,21 @@ class DungeonGame:
         return True
 
     def run(self):
-        """Main game loop."""
+        """
+        Execute the main game loop.
+
+        Serves as the primary game execution method that:
+        - Maintains continuous game operation
+        - Manages state transitions
+        - Handles frame timing
+        - Coordinates game progression
+
+        Game Loop Characteristics:
+        - Event-driven processing
+        - State-based execution
+        - Consistent frame rate management
+        - Graceful game termination
+        """
         running = True
         clock = pygame.time.Clock()
 

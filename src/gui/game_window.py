@@ -10,18 +10,54 @@ from src.combat.combat_system import CombatSystem
 
 class GameWindow:
     """
-    Main game window handler. Manages the game's graphical interface,
-    user input, and coordinates between different UI components.
+    Central management system for the game's graphical interface.
+
+    Serves as the primary controller that coordinates all
+    visual and interactive elements of the Dungeon Adventure game.
+
+    Design Architecture:
+    1. UI Component Management
+       - Event log tracking
+       - Stats display
+       - Minimap rendering
+       - Combat interface
+       - First-person view rendering
+
+    2. Game State Tracking
+       - Combat status
+       - Player location
+       - Exploration progress
+       - Victory/defeat conditions
+
+    3. Input Handling System
+       - Keyboard movement
+       - Combat action selection
+       - Item usage
+       - Menu navigation
+
+    Interaction Workflow:
+    The GameWindow provides a comprehensive bridge between
+    game logic and user interaction, ensuring a smooth and
+    intuitive player experience across different game states.
     """
 
     def __init__(self, dungeon, pillar_locations, hero):
         """
-        Initialize the game window and its components.
+        Initialize the game window's comprehensive UI system.
 
-        Args:
-            dungeon: The game's dungeon
-            pillar_locations: List of pillar locations
-            hero: The player character
+        Sets up all necessary components for a rich,
+        interactive game experience:
+        - Create pygame display surface
+        - Initialize UI components
+        - Track game and player state
+        - Prepare for different game modes
+
+        Initialization Strategy:
+        1. Set up display window
+        2. Store game references (dungeon, hero)
+        3. Initialize UI components
+        4. Prepare game state trackers
+        5. Configure initial view settings
         """
         # Initialize pygame window
         self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
@@ -72,8 +108,17 @@ class GameWindow:
         """
         Update game state for each frame.
 
-        Args:
-            hero: The player character
+        Manages dynamic elements of the game interface:
+        - Update combat state
+        - Refresh stats display
+        - Check game-ending conditions
+        - Manage visual state changes
+
+        Comprehensive State Management:
+        1. Process ongoing combat mechanics
+        2. Update visual indicators
+        3. Check for victory or defeat
+        4. Maintain smooth game progression
         """
         # Update combat state if in combat
         if self.in_combat and self.combat_system:
@@ -93,13 +138,19 @@ class GameWindow:
 
     def handle_event(self, event: pygame.event.Event) -> bool:
         """
-        Handle pygame events. Returns False if game should quit.
+        Central event processing method for game interactions.
 
-        Args:
-            event: The pygame event to handle
+        Manages all user inputs across different game states:
+        - Quit game detection
+        - Keyboard input handling
+        - Combat interactions
+        - Movement controls
 
-        Returns:
-            False if the game should quit, True otherwise
+        Event Handling Strategy:
+        1. Detect system-level events (quit)
+        2. Process keyboard inputs
+        3. Manage combat-specific interactions
+        4. Support seamless mode transitions
         """
         if event.type == pygame.QUIT:
             return False
@@ -116,13 +167,19 @@ class GameWindow:
 
     def _handle_key_event(self, event: pygame.event.Event) -> bool:
         """
-        Handle keyboard input for movement, combat, and item usage.
+        Process keyboard inputs for movement and interactions.
 
-        Args:
-            event: The keyboard event
+        Comprehensive input handling that supports:
+        - Combat mode controls
+        - Exploration movement
+        - Item usage
+        - Log scrolling
 
-        Returns:
-            True to continue the game, False to quit
+        Input Processing Workflow:
+        1. Determine current game mode
+        2. Map keyboard inputs to specific actions
+        3. Validate and execute interactions
+        4. Provide user feedback
         """
         if self.in_combat:
             # Combat controls
@@ -273,12 +330,21 @@ class GameWindow:
 
     def start_combat(self, hero, monster):
         """
-        Initialize combat with a monster.
+        Initiate a combat encounter.
 
-        Args:
-            hero: The player character
-            monster: The monster to fight
+        Manages the transition into combat mode:
+        - Set up combat system
+        - Initialize combat UI
+        - Log combat start
+        - Prepare combat state
+
+        Combat Initialization Process:
+        1. Change game state to combat mode
+        2. Create combat system instance
+        3. Clear previous combat messages
+        4. Provide user feedback
         """
+
         self.in_combat = True
         self.combat_system = CombatSystem(hero, monster)
         self.event_log.add_message(f"Combat started with {monster.name}!", "combat", True)
@@ -433,13 +499,17 @@ class GameWindow:
 
     def check_victory_condition(self, hero) -> bool:
         """
-        Check if the player has won.
+        Determine if the player has met victory conditions.
 
-        Args:
-            hero: The player character
+        Checks comprehensive win state by verifying:
+        - Player location (exit reached)
+        - Pillar collection status
 
-        Returns:
-            True if victory conditions are met, False otherwise
+        Victory Validation Strategy:
+        1. Check exit location
+        2. Verify pillar collection
+        3. Trigger victory sequence
+        4. Log victory message
         """
         if hero.location == self.dungeon.exit and hero.has_all_pillars():
             self.victory = True
@@ -452,11 +522,19 @@ class GameWindow:
 
     def draw(self, hero, debug_log_minimap=False):
         """
-        Draw the game window and all components.
+        Render the complete game interface.
 
-        Args:
-            hero: The player character
-            debug_log_minimap: Whether to log minimap debug info
+        Manages rendering across different game states:
+        - Normal exploration view
+        - Combat interface
+        - Victory screen
+
+        Rendering Workflow:
+        1. Clear screen
+        2. Determine current game state
+        3. Render appropriate view
+        4. Update display
+        5. Optional debug logging
         """
         self.screen.fill(BLACK)
 
@@ -541,7 +619,19 @@ class GameWindow:
         self.screen.blit(text, text_rect)
 
     def draw_game_over(self):
-        """Draw Dark Souls style death screen."""
+        """
+        Create dramatic game over screen.
+
+        Implements a cinematic death sequence with:
+        - Fade to black effect
+        - Dramatic "YOU DIED" text
+        - Restart/quit options
+
+        Death Screen Design:
+        1. Progressive black fade
+        2. Animated text rendering
+        3. Provide player action options
+        """
         if not self.death_screen_shown:
             self._create_death_screen()
         else:

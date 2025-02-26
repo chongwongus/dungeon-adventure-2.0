@@ -5,9 +5,34 @@ import random
 from src.combat.combat_system import CombatSystem
 
 class Dungeon:
-    """Represents the game dungeon, including rooms and maze generation."""
+    """
+    Represents the game's dungeon as a complex, interconnected grid of rooms.
+
+    The Dungeon class is the central spatial representation of the game world,
+    managing room layouts, connections, and intricate interactions between
+    different dungeon elements.
+
+    Key Responsibilities:
+    - Maintain dungeon grid structure
+    - Validate and process hero movement
+    - Handle room-specific interactions
+    - Manage visibility and exploration
+    """
 
     def __init__(self, size: Tuple[int, int] = (8, 8)):
+        """
+        Initialize a new dungeon with specified dimensions.
+
+        This constructor sets up the fundamental structure of the dungeon:
+        - Creates an empty maze grid
+        - Defines dungeon size
+        - Prepares placeholders for entrance and exit points
+
+        Args:
+            size (Tuple[int, int], optional):
+                Dimensions of the dungeon grid.
+                Defaults to an 8x8 grid.
+        """
         self.size = size
         self.maze: List[List[Room]] = [[]]
         self.entrance: Optional[Tuple[int, int]] = None
@@ -15,8 +40,20 @@ class Dungeon:
 
     def reveal_adjacent_rooms(self, center_pos: Tuple[int, int]) -> List[Tuple[int, int]]:
         """
-        Mark all adjacent rooms as visited when using a vision potion.
-        Returns list of revealed room coordinates.
+        Reveal rooms adjacent to a given position, simulating a vision potion effect.
+
+        This method:
+        - Identifies all rooms surrounding the given position
+        - Marks these rooms as visited
+        - Supports exploration mechanics
+
+        Args:
+            center_pos (Tuple[int, int]):
+                Coordinates of the central room
+
+        Returns:
+            List[Tuple[int, int]]:
+                Coordinates of rooms that were revealed
         """
         revealed = []
         x, y = center_pos
@@ -31,7 +68,21 @@ class Dungeon:
         return revealed
 
     def is_room_reachable(self, start: Tuple[int, int], target: Tuple[int, int]) -> bool:
-        """Check if there is a path between start and target positions."""
+        """
+        Determine if a path exists between two rooms using depth-first search.
+
+        This method:
+        - Checks room connectivity
+        - Validates potential navigation routes
+        - Ensures dungeon exploration is possible
+
+        Args:
+            start (Tuple[int, int]): Starting room coordinates
+            target (Tuple[int, int]): Destination room coordinates
+
+        Returns:
+            bool: True if a path exists, False otherwise
+        """
         visited = set()
         stack = [start]
 
@@ -57,15 +108,40 @@ class Dungeon:
         return False
 
     def get_room(self, x: int, y: int) -> Optional[Room]:
-        """Return the room at the given position if it exists."""
+        """
+        Retrieve the room at specific coordinates.
+
+        This method:
+        - Validates room coordinates
+        - Returns the Room instance at those coordinates
+        - Handles boundary checking
+
+        Args:
+            x (int): X-coordinate in the dungeon grid
+            y (int): Y-coordinate in the dungeon grid
+
+        Returns:
+            Optional[Room]: Room at the specified coordinates, or None
+        """
         if 0 <= x < self.size[0] and 0 <= y < self.size[1]:
             return self.maze[y][x]
         return None
 
     def get_room_in_direction(self, current_pos: Tuple[int, int], direction: str) -> Optional[Tuple[int, int]]:
         """
-        Get coordinates of room in given direction from current position.
-        Returns None if movement would be out of bounds.
+        Calculate room coordinates when moving in a specific direction.
+
+        This method:
+        - Determines new room coordinates based on movement direction
+        - Performs boundary checking
+        - Supports navigation logic
+
+        Args:
+            current_pos (Tuple[int, int]): Current room coordinates
+            direction (str): Movement direction ('N', 'S', 'E', 'W')
+
+        Returns:
+            Optional[Tuple[int, int]]: Coordinates of the room in the specified direction
         """
         x, y = current_pos
         new_x, new_y = x, y
@@ -85,7 +161,33 @@ class Dungeon:
         return None
 
     def move_hero(self, hero, direction: str) -> Tuple[bool, List[str], Optional[CombatSystem]]:
-        """Attempt to move hero in given direction."""
+        """
+        Process hero movement through the dungeon.
+
+        This comprehensive method handles:
+        - Movement validation
+        - Room connectivity checking
+        - Room effect processing
+        - Potential combat encounter initiation
+
+        Detailed steps:
+        1. Validate current hero location
+        2. Check movement direction availability
+        3. Verify room-to-room connectivity
+        4. Update hero's location
+        5. Process room-specific interactions
+        6. Handle potential combat encounters
+
+        Args:
+            hero: The hero character attempting to move
+            direction (str): Movement direction
+
+        Returns:
+            Tuple containing:
+            - Movement success (bool)
+            - Interaction messages (List[str])
+            - Potential combat system (Optional[CombatSystem])
+        """
         if not hero.location:
             return False, ["No current location!"], None
 
@@ -120,6 +222,27 @@ class Dungeon:
         return True, messages, combat_system
 
     def apply_room_effects(self, hero) -> List[str]:
+        """
+        Process all interactions and effects when entering a room.
+
+        This method manages multiple room interaction types:
+        - Pillar collection
+        - Pit damage
+        - Item pickup (health/vision potions)
+        - Logging and tracking exploration
+
+        Interaction Precedence:
+        1. Pillar collection
+        2. Pit damage
+        3. Item collection
+        4. Logging exploration state
+
+        Args:
+            hero: The hero character in the room
+
+        Returns:
+            List[str]: Messages describing room interactions
+        """
         messages = []
         room = self.get_room(*hero.location)
 
@@ -166,7 +289,18 @@ class Dungeon:
         return messages
 
     def get_visible_rooms(self) -> Dict[Tuple[int, int], Room]:
-        """Return dictionary of all visited room coordinates and their rooms."""
+        """
+        Retrieve all rooms that have been visited during exploration.
+
+        This method:
+        - Tracks explored dungeon areas
+        - Supports map revelation mechanics
+        - Enables partial dungeon visibility
+
+        Returns:
+            Dict[Tuple[int, int], Room]:
+                Dictionary of visited room coordinates and their instances
+        """
         visible = {}
         for y in range(self.size[1]):
             for x in range(self.size[0]):
@@ -175,7 +309,18 @@ class Dungeon:
         return visible
 
     def __str__(self) -> str:
-        """Return string representation of entire dungeon."""
+        """
+        Generate a string representation of the entire dungeon.
+
+        Creates an ASCII art-like visualization of the dungeon grid,
+        showing:
+        - Room connections
+        - Room contents
+        - Exploration state
+
+        Returns:
+            str: Textual representation of the dungeon layout
+        """
         result = []
         for row in self.maze:
             room_lines = [str(room).split('\n') for room in row]

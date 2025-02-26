@@ -4,12 +4,50 @@ from ..constants import WHITE, WINDOW_WIDTH, WINDOW_HEIGHT, BLACK
 
 class CombatUI:
     """
-    Handles the combat user interface, including character portraits, health bars,
-    action buttons, and the combat log.
+    Manages the visual and interactive elements of combat encounters.
+
+    This class creates a rich, informative interface that transforms
+    complex combat mechanics into an easily understandable visual
+    representation. It bridges the gap between game logic and player
+    perception, making combat both informative and engaging.
+
+    Core Responsibilities:
+    - Generate character portraits
+    - Render health bars
+    - Create interactive combat buttons
+    - Manage combat message logging
+    - Handle user interaction
+
+    Design Components:
+    1. Font Management
+       - Attempts to load custom font
+       - Provides fallback to system fonts
+
+    2. Character Representation
+       - Creates placeholder portraits
+       - Supports both hero and monster characters
+
+    3. Combat Interaction
+       - Defines action buttons
+       - Manages button selection
+       - Provides click handling
     """
 
     def __init__(self):
-        """Initialize the Combat UI elements and resources."""
+        """
+        Initialize the combat user interface components.
+
+        This constructor sets up all visual and interactive elements:
+        - Load or fallback fonts
+        - Create character portrait placeholders
+        - Define action buttons
+        - Prepare combat message log
+
+        Font Handling Strategy:
+        1. Attempt to load custom ActionMan font
+        2. Gracefully fall back to system fonts if loading fails
+        3. Ensure consistent text rendering across different systems
+        """
         # Initialize fonts
         try:
             self.font = pygame.font.Font("src/assets/fonts/ActionMan.ttf", 24)
@@ -42,10 +80,20 @@ class CombatUI:
 
     def add_combat_message(self, message: str):
         """
-        Add a message to the combat log.
+        Record a message in the combat log.
+
+        Manages the combat narrative by:
+        - Adding new messages to the log
+        - Maintaining a fixed maximum number of messages
+        - Ensuring the most recent messages are always visible
+
+        Narrative Management:
+        - Prevents log overflow
+        - Provides a continuous combat story
+        - Allows players to track combat progression
 
         Args:
-            message: The combat message to display
+            message (str): Combat event description to be logged
         """
         self.combat_messages.append(message)
         # Keep only the most recent messages
@@ -54,13 +102,24 @@ class CombatUI:
 
     def _create_portrait(self, color):
         """
-        Create a simple colored square as a placeholder portrait.
+        Generate a simple colored portrait for characters.
+
+        Creates visual representations for different character types
+        using a basic color-based approach. This method:
+        - Generates a colored rectangular surface
+        - Adds a white border for visual distinction
+        - Provides a quick way to differentiate characters
+
+        Design Considerations:
+        - Placeholder for more complex portrait system
+        - Ensures visual variety
+        - Supports quick character identification
 
         Args:
-            color: RGB tuple for the portrait color
+            color: RGB tuple defining the portrait's base color
 
         Returns:
-            A pygame Surface with the portrait
+            pygame.Surface: A colored surface representing a character portrait
         """
         surface = pygame.Surface((64, 64))
         surface.fill(color)
@@ -86,13 +145,26 @@ class CombatUI:
 
     def draw_combat_screen(self, screen, hero, monster, selected_action=None):
         """
-        Draw the complete combat interface.
+        Render the complete combat interface.
+
+        This comprehensive method creates a full combat screen by:
+        1. Drawing combat background
+        2. Rendering character portraits
+        3. Displaying health bars
+        4. Showing character names and stats
+        5. Rendering combat log
+        6. Creating interactive action buttons
+
+        Visual Composition:
+        - Organized layout with clear information hierarchy
+        - Dynamic highlighting of selected actions
+        - Comprehensive combat state representation
 
         Args:
-            screen: The pygame screen to draw on
-            hero: The player character
-            monster: The monster being fought
-            selected_action: Currently selected combat action, if any
+            screen: Pygame display surface
+            hero: Player character
+            monster: Opponent character
+            selected_action: Currently selected combat action
         """
         # Draw combat background
         pygame.draw.rect(screen, (20, 20, 20), pygame.Rect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT))
@@ -159,11 +231,21 @@ class CombatUI:
 
     def _draw_health_bar(self, screen, pos, current, maximum):
         """
-        Draw a health bar with border.
+        Create a visually informative health bar.
+
+        Renders a health visualization that:
+        - Shows current health proportion
+        - Uses color to indicate health status
+        - Provides clear, immediate health information
+
+        Visual Design:
+        - Red background representing total health capacity
+        - Filled portion showing current health
+        - White border for clarity
 
         Args:
-            screen: The pygame screen to draw on
-            pos: (x, y) position for the health bar
+            screen: Pygame display surface
+            pos: (x, y) position of health bar
             current: Current health points
             maximum: Maximum health points
         """
@@ -182,13 +264,23 @@ class CombatUI:
 
     def handle_click(self, pos):
         """
-        Handle mouse clicks on the combat UI.
+        Process mouse interactions with combat interface.
+
+        Implements button interaction by:
+        - Checking if click occurs on any action button
+        - Returning the corresponding action
+        - Supporting intuitive user interaction
+
+        Interaction Workflow:
+        1. Receive mouse position
+        2. Check against button rectangles
+        3. Return selected action or None
 
         Args:
-            pos: (x, y) mouse position
+            pos: (x, y) mouse click coordinates
 
         Returns:
-            The action selected, or None if no action was clicked
+            str or None: Selected action or None if no button clicked
         """
         for action, rect in self.action_buttons.items():
             if rect.collidepoint(pos):

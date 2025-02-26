@@ -2,6 +2,20 @@ import pygame
 from enum import Enum
 
 class MenuState(Enum):
+    """
+    Defines the possible states of the game start menu.
+
+    Provides a structured approach to managing menu navigation
+    and user interaction flow. Each state represents a specific
+    phase of the game configuration process.
+
+    Menu Progression:
+    1. MAIN_MENU: Initial entry point
+    2. HERO_SELECT: Character selection phase
+    3. NAME_INPUT: Player name entry
+    4. DIFFICULTY_SELECT: Game challenge level choice
+    5. PLAYING: Transition to game start
+    """
     MAIN_MENU = 0
     HERO_SELECT = 1
     NAME_INPUT = 2
@@ -9,7 +23,62 @@ class MenuState(Enum):
     PLAYING = 4
 
 class GameMenu:
+    """
+    Manages the comprehensive game initialization interface.
+
+    This class creates a sophisticated, interactive menu system
+    that guides players through character and game configuration
+    with an engaging, informative approach.
+
+    Core Responsibilities:
+    - Render character selection interface
+    - Manage player input
+    - Validate game configuration
+    - Provide detailed character information
+
+    Design Components:
+    1. Font Management
+       - Multiple font sizes for hierarchical information display
+       - Supports different text purposes (titles, descriptions)
+
+    2. Hero Selection System
+       - Detailed character information
+       - Hover-based information reveal
+       - Visual selection feedback
+
+    3. Configuration Validation
+       - Tracks selected hero, name, and difficulty
+       - Enables start button only when all requirements met
+    """
+
     def __init__(self, screen):
+        """
+        Manages the comprehensive game initialization interface.
+
+        This class creates a sophisticated, interactive menu system
+        that guides players through character and game configuration
+        with an engaging, informative approach.
+
+        Core Responsibilities:
+        - Render character selection interface
+        - Manage player input
+        - Validate game configuration
+        - Provide detailed character information
+
+        Design Components:
+        1. Font Management
+           - Multiple font sizes for hierarchical information display
+           - Supports different text purposes (titles, descriptions)
+
+        2. Hero Selection System
+           - Detailed character information
+           - Hover-based information reveal
+           - Visual selection feedback
+
+        3. Configuration Validation
+           - Tracks selected hero, name, and difficulty
+           - Enables start button only when all requirements met
+        """
         self.screen = screen
         self.font_large = pygame.font.Font(None, 64)  # Title
         self.font_medium = pygame.font.Font(None, 36)  # Hero names, buttons
@@ -74,6 +143,25 @@ class GameMenu:
         self.can_start = False
 
     def handle_event(self, event):
+        """
+        Process user interactions with the start menu.
+
+        Comprehensive event handling that supports:
+        - Mouse movement tracking
+        - Hero selection
+        - Name input
+        - Difficulty selection
+        - Start game validation
+
+        Event Handling Workflow:
+        1. Track mouse position for hover effects
+        2. Process mouse clicks for selections
+        3. Manage text input for player name
+        4. Update start button availability
+        5. Return game settings when ready to start
+
+        Returns configured game settings or None if configuration incomplete
+        """
         if event.type == pygame.MOUSEMOTION:
             mouse_pos = pygame.mouse.get_pos()
             # Update hover states
@@ -118,12 +206,40 @@ class GameMenu:
         return None
 
     def update_start_button(self):
-        """Update whether the start button can be clicked"""
+        """
+        Dynamically manage start button activation.
+
+        Validates game configuration by checking:
+        - Hero class selection
+        - Player name entry
+        - Difficulty level choice
+
+        Ensures comprehensive configuration before allowing game start
+        """
         self.can_start = (self.selected_hero and
                           self.player_name.strip() and
                           self.selected_difficulty)
 
     def draw(self):
+        """
+        Render the complete game start menu interface.
+
+        Creates a visually rich, informative menu that:
+        - Displays game title
+        - Renders hero selection section
+        - Manages name input
+        - Handles difficulty selection
+        - Provides start game button
+
+        Rendering Strategy:
+        1. Clear screen
+        2. Draw title
+        3. Create hero selection area
+        4. Implement name input field
+        5. Add difficulty selection
+        6. Render start button
+        7. Manage visual state and interactions
+        """
         self.screen.fill((0, 0, 0))  # Clear screen
 
         # Draw title
@@ -274,6 +390,17 @@ class GameMenu:
         pygame.display.flip()
 
     def get_game_settings(self):
+        """
+        Compile and return the final game configuration.
+
+        Collects and packages:
+        - Selected hero class
+        - Player name
+        - Chosen difficulty level
+
+        Returns a comprehensive dictionary of game settings
+        when all configuration requirements are met.
+        """
         """Return the selected game settings."""
         if self.can_start:
             return {
