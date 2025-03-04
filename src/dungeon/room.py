@@ -80,6 +80,9 @@ class Room:
             'vision_potion': 0.2  # 20% chance
         }
 
+    def place_monster(self, monster: Monster):
+        self.monster = monster
+
     def spawn_monster(self, force: bool = False) -> None:
         """
         Attempt to spawn a monster in the room.

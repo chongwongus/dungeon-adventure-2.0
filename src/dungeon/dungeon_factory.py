@@ -5,6 +5,7 @@ from typing import Tuple
 from .room import Room
 from .dungeon import Dungeon
 
+
 class DungeonFactory(ABC):
     """
     Abstract base class for implementing dungeon generation strategies.

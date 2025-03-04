@@ -1,3 +1,5 @@
+import random
+
 from src.configuration.monster_configuration import MonsterConfiguration
 from src.characters.monsters.monster_factory import MonsterFactory
 from src.database.sqlite_configuration import SqlLiteConfiguration
@@ -26,8 +28,8 @@ class SqliteMonsterConfiguration(MonsterConfiguration, SqlLiteConfiguration):
             cursor.execute("INSERT INTO monster VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", monster)
         self._con.commit()
         SqlLiteConfiguration.close_db(self)
-        
-    def configure(self, dungeon):
+
+    def _create_monsters(self):
         SqlLiteConfiguration.open_db(self)
         cursor = self._con.cursor()
         mosters = []
@@ -35,7 +37,18 @@ class SqliteMonsterConfiguration(MonsterConfiguration, SqlLiteConfiguration):
         rows = cursor.fetchall()
         for row in rows:
             for i in range(row[0]):
-                monster = self._monster_factory.create_monster(row[1], row[2],row[3], row[4],row[5], row[6], row[7], row[8], row[9])
+                monster = self._monster_factory.create_monster(row[1], row[2], row[3], row[4], row[5], row[6], row[7],
+                                                               row[8], row[9])
                 mosters.append(monster)
         SqlLiteConfiguration.close_db(self)
         return mosters
+        
+    def configure(self, dungeon):
+        monsters = self._create_monsters()
+        while len(monsters) > 0:
+            monster = monsters.pop()
+            for i in range(dungeon.size[0]):
+                for j in range(dungeon.size[1]):
+                    room = dungeon.get_room(i, j)
+                    if room.monster is not None and random.random() < 0.3:
+                        room.add_monster(monster)
