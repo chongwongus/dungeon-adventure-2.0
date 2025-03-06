@@ -13,6 +13,7 @@ class TestSqliteMonsterConfiguration(unittest.TestCase):
 
     def test_init_creates_table_and_inserts_monsters(self):
         test_dungeon = Dungeon()
+        test_dungeon.__init__()
         monsters = self.monster_configuration.configure(test_dungeon)
 
         self.assertIsNotNone(monsters)

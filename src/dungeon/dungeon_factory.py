@@ -2,8 +2,12 @@ from abc import ABC, abstractmethod
 import random
 from typing import Tuple
 
+from src.configuration.dungeon_configuration_service import DungeonConfigurationService
+from src.database.sqlite_monster_configuration import SqliteMonsterConfiguration
+
 from .room import Room
 from .dungeon import Dungeon
+
 
 class DungeonFactory(ABC):
     """
@@ -25,6 +29,8 @@ class DungeonFactory(ABC):
         reference and validation of special game elements.
         """
         self.pillar_locations = []  # List of (pillar_type, x, y) tuples
+        self._monster_configuration = SqliteMonsterConfiguration()
+        self._dungeon_config_service = DungeonConfigurationService(self._monster_configuration)
 
     @abstractmethod
     def create(self, size: Tuple[int, int] = (8, 8)) -> Dungeon:
@@ -193,7 +199,8 @@ class DungeonFactory(ABC):
         self.place_pillars(dungeon)
 
         # Then add monsters
-        self.place_monsters(dungeon)
+        self._dungeon_config_service.configure_monsters(dungeon)
+        # self.place_monsters(dungeon)
 
         # Finally add other items
         self.place_items(dungeon)
@@ -249,6 +256,7 @@ class DungeonFactory(ABC):
         Args:
             dungeon (Dungeon): The dungeon to populate with monsters
         """
+        monsters = self._monster_factory.create_monster()
         for y in range(dungeon.size[1]):
             for x in range(dungeon.size[0]):
                 room = dungeon.get_room(x, y)

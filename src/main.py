@@ -35,7 +35,6 @@ class GameState(Enum):
     GAME_OVER = 4
     VICTORY = 5
 
-
 class DungeonGame:
     """
     Primary game controller for the Dungeon Adventure experience.
