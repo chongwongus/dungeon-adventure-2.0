@@ -1,11 +1,13 @@
 import random
 
+from black.brackets import MATH_OPERATORS
+
 from src.configuration.monster_configuration import MonsterConfiguration
 from src.characters.monsters.monster_factory import MonsterFactory
-from src.database.sqlite_configuration import SqlLiteConfiguration
+from src.database.sqlite_configuration import SqliteConfiguration
 
 
-class SqliteMonsterConfiguration(MonsterConfiguration, SqlLiteConfiguration):
+class SqliteMonsterConfiguration(MonsterConfiguration, SqliteConfiguration):
     
     monsters = [
         (10, "Goblin", 10, 10, 10, 0.8, 0.2, 5, 5, 1),
@@ -15,40 +17,46 @@ class SqliteMonsterConfiguration(MonsterConfiguration, SqlLiteConfiguration):
     ]
     
     def __init__(self):
-        SqlLiteConfiguration.__init__(self, "monster")
-        SqlLiteConfiguration.open_db(self)
+        SqliteConfiguration.__init__(self, "dungeon_adventure")
+        SqliteConfiguration.open_db(self)
 
         self._monster_factory = MonsterFactory()
 
         cursor = self._con.cursor()
         
-        cursor.execute("CREATE TABLE IF NOT EXISTS monster (amount INTEGER, name TEXT, hp INTEGER, min_damage INTEGER, max_damage INTEGER, attack_speed INTEGER, hit_chance REAL, heal_chance REAL, max_heal INTEGER)")
+        cursor.execute("CREATE TABLE IF NOT EXISTS monster (amount INTEGER, name TEXT, hp INTEGER, min_damage INTEGER, max_damage INTEGER, attack_speed INTEGER, hit_chance REAL, heal_chance REAL, max_heal INTEGER, min_heal INTEGER)")
         cursor.execute("DELETE FROM monster")
         for monster in self.monsters:
             cursor.execute("INSERT INTO monster VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", monster)
         self._con.commit()
-        SqlLiteConfiguration.close_db(self)
+        SqliteConfiguration.close_db(self)
 
     def _create_monsters(self):
-        SqlLiteConfiguration.open_db(self)
+        SqliteConfiguration.open_db(self)
         cursor = self._con.cursor()
-        mosters = []
+        monsters = []
         cursor.execute("SELECT * FROM monster")
         rows = cursor.fetchall()
         for row in rows:
             for i in range(row[0]):
-                monster = self._monster_factory.create_monster(row[1], row[2], row[3], row[4], row[5], row[6], row[7],
-                                                               row[8], row[9])
-                mosters.append(monster)
-        SqlLiteConfiguration.close_db(self)
-        return mosters
+                monster = self._monster_factory.create_monster(row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9])
+                monsters.append(monster)
+        SqliteConfiguration.close_db(self)
+        return monsters
         
     def configure(self, dungeon):
         monsters = self._create_monsters()
-        while len(monsters) > 0:
-            monster = monsters.pop()
+        placed_monsters = []
+        count_monster_to_place = min(len(monsters), dungeon.size[0]*dungeon.size[1])
+        monster = monsters.pop()
+        while count_monster_to_place > 0:
             for i in range(dungeon.size[0]):
                 for j in range(dungeon.size[1]):
                     room = dungeon.get_room(i, j)
-                    if room.monster is not None and random.random() < 0.3:
-                        room.add_monster(monster)
+                    if room.monster is None and random.random() < 0.3:
+                        room.place_monster(monster)
+                        placed_monsters.append(monster)
+                        if len(monsters) > 0 :
+                            monster = monsters.pop()
+                        count_monster_to_place -= 1
+        return placed_monsters

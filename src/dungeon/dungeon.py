@@ -1,8 +1,8 @@
 # src/dungeon/dungeon.py
 from typing import Tuple, Optional, List, Dict
-from .room import Room
 import random
 from src.combat.combat_system import CombatSystem
+from src.dungeon.room import Room
 
 class Dungeon:
     """
@@ -34,7 +34,7 @@ class Dungeon:
                 Defaults to an 8x8 grid.
         """
         self.size = size
-        self.maze: List[List[Room]] = [[]]
+        self.maze: List[List[Room]] = [[Room() for _ in range(size[0])] for _ in range(size[1])]
         self.entrance: Optional[Tuple[int, int]] = None
         self.exit: Optional[Tuple[int, int]] = None
 

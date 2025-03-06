@@ -2,7 +2,7 @@ import sqlite3
 
 from src.configuration.dungeon_configuration import DungeonConfiguration
 
-class SqlLiteConfiguration(DungeonConfiguration):
+class SqliteConfiguration(DungeonConfiguration):
     def __init__(self, db_name):
         self.db_name = db_name
         self._con = None
