@@ -238,7 +238,8 @@ class GameMenu:
         4. Implement name input field
         5. Add difficulty selection
         6. Render start button
-        7. Manage visual state and interactions
+        7. Render load button
+        8. Manage visual state and interactions
         """
         self.screen.fill((0, 0, 0))  # Clear screen
 
@@ -373,7 +374,7 @@ class GameMenu:
 
         # Draw start button
         self.start_rect = pygame.Rect(
-            self.screen.get_width() // 2 - 100,
+            self.screen.get_width() // 2 + 100,
             550,
             200,
             60
@@ -386,6 +387,25 @@ class GameMenu:
         start_text = self.font_medium.render("Start Game", True, (255, 255, 255))
         self.screen.blit(start_text, (
         self.start_rect.centerx - start_text.get_width() // 2, self.start_rect.centery - start_text.get_height() // 2))
+
+        pygame.display.flip()
+
+        # Draw load button
+        self.load_rect = pygame.Rect(
+            self.screen.get_width() // 2 - 300,
+            550,
+            200,
+            60
+        )
+
+        load_color = (0, 128, 0) if self.can_start else (64, 64, 64)
+        pygame.draw.rect(self.screen, load_color, self.load_rect)
+        pygame.draw.rect(self.screen, (128, 128, 128), self.load_rect, 2)
+
+        load_text = self.font_medium.render("Load Game", True, (255, 255, 255))
+        self.screen.blit(load_text, (
+            self.load_rect.centerx - load_text.get_width() // 2,
+            self.load_rect.centery - load_text.get_height() // 2))
 
         pygame.display.flip()
 
