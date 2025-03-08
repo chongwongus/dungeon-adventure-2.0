@@ -141,6 +141,7 @@ class GameMenu:
         # Start button
         self.start_rect = None
         self.can_start = False
+        self.can_load = False
 
     def handle_event(self, event):
         """
@@ -398,7 +399,7 @@ class GameMenu:
             60
         )
 
-        load_color = (0, 128, 0) if self.can_start else (64, 64, 64)
+        load_color = (0, 128, 0) if self.can_load else (64, 64, 64)
         pygame.draw.rect(self.screen, load_color, self.load_rect)
         pygame.draw.rect(self.screen, (128, 128, 128), self.load_rect, 2)
 
