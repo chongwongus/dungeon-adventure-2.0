@@ -17,7 +17,7 @@ class SqliteMonsterConfiguration(MonsterConfiguration, SqliteConfiguration):
     ]
     
     def __init__(self):
-        SqliteConfiguration.__init__(self, "dungeon_adventure")
+        SqliteConfiguration.__init__(self)
         SqliteConfiguration.open_db(self)
 
         self._monster_factory = MonsterFactory()
