@@ -65,7 +65,7 @@ class DFSDungeonFactory(DungeonFactory):
         for y in range(self.dungeon.size[1]):
             row = []
             for x in range(self.dungeon.size[0]):
-                row.append(Room())
+                row.append(Room(sql_room))
             self.dungeon.maze.append(row)
 
         # Set entrance and exit

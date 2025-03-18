@@ -21,6 +21,10 @@ class EasyDungeonFactory(DungeonFactory):
     that ensures playability while maintaining an element of surprise.
     """
 
+    def __init__(self):
+        super().__init__()
+        self.dungeon = None
+
     def create(self, size=(8, 8)) -> Dungeon:
         """
         Generate a complete dungeon using a simplified generation strategy.

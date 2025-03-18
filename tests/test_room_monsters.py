@@ -7,7 +7,7 @@ from src.dungeon.room import Room
 
 def test_room_monsters():
     # Create a test room
-    room = Room()
+    room = Room(sql_room)
     room.visited = True  # So we can see the contents
 
     print("\n=== Room Monster Test ===")
@@ -15,7 +15,7 @@ def test_room_monsters():
     # Test monster spawning
     print("\nTesting normal monster spawn (30% chance):")
     for i in range(5):
-        test_room = Room()
+        test_room = Room(sql_room)
         test_room.spawn_monster()
         if test_room.monster:
             print(f"Spawned: {test_room.monster}")
@@ -43,12 +43,12 @@ def test_room_monsters():
 
     # Test entrance/exit protection
     print("\nTesting entrance/exit monster protection:")
-    entrance = Room()
+    entrance = Room(sql_room)
     entrance.isEntrance = True
     entrance.spawn_monster()
     print(f"Monster at entrance? {'Yes' if entrance.monster else 'No'}")
 
-    exit_room = Room()
+    exit_room = Room(sql_room)
     exit_room.isExit = True
     exit_room.spawn_monster()
     print(f"Monster at exit? {'Yes' if exit_room.monster else 'No'}")

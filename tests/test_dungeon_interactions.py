@@ -15,7 +15,7 @@ class TestDungeonInteractions(unittest.TestCase):
         for y in range(4):
             row = []
             for x in range(4):
-                row.append(Room())
+                row.append(Room(sql_room))
             self.dungeon.maze.append(row)
 
         # Set entrance and exit

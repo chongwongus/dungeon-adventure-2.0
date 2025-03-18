@@ -6,20 +6,20 @@ from src.characters.monsters.skeleton import Skeleton
 
 class MonsterFactory():
 
-    def create_monster(self,
-                 name: str,
-                 hp: int,
-                 min_damage: int,
-                 max_damage: int,
-                 attack_speed: int,
-                 hit_chance: float,
-                 heal_chance: float,
-                 min_heal: int,
-                 max_heal: int):
+    @staticmethod
+    def create_monster(name: str,
+                       hp: int,
+                       min_damage: int,
+                       max_damage: int,
+                       attack_speed: int,
+                       hit_chance: float,
+                       heal_chance: float,
+                       min_heal: int,
+                       max_heal: int):
         monsters = {
-            "goblin": Gremlin(hp, min_damage,max_damage,attack_speed,hit_chance,heal_chance,min_heal,max_heal),
-            "orc": Ogre(hp, min_damage,max_damage,attack_speed,hit_chance,heal_chance,min_heal,max_heal),
-            "troll": Skeleton(hp, min_damage,max_damage,attack_speed,hit_chance,heal_chance,min_heal,max_heal),
+            "gremlin": Gremlin(hp, min_damage,max_damage,attack_speed,hit_chance,heal_chance,min_heal,max_heal),
+            "ogre": Ogre(hp, min_damage,max_damage,attack_speed,hit_chance,heal_chance,min_heal,max_heal),
+            "skeleton": Skeleton(hp, min_damage,max_damage,attack_speed,hit_chance,heal_chance,min_heal,max_heal),
             "dragon": Dragon(hp, min_damage,max_damage,attack_speed,hit_chance,heal_chance,min_heal,max_heal),
         }
         monster = monsters[name.lower()]

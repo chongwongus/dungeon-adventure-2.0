@@ -1,13 +1,10 @@
 import sys
 import os
 import unittest
-from typing import List, Tuple, Union
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.characters.monsters.monster_factory import MonsterFactory
 from src.configuration.splite_monster_factory import SqliteMonsterFactory
-from src.database.sqlite_monster_configuration import SqliteMonsterConfiguration
 
 class TestSqliteMonsterFactory(unittest.TestCase):
 

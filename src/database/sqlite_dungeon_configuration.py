@@ -2,22 +2,26 @@ import uuid
 from typing import Tuple
 
 from src.characters.base.monster import Monster
+from src.characters.monsters.monster_factory import MonsterFactory
 from src.database.sqlite_configuration import SqliteConfiguration
+from src.database.sqlite_table_constants import TableConstants
 from src.dungeon.dungeon import Dungeon
 from src.dungeon.room import Room
+from src.game.game_data import GameData
+
 
 class SqliteRoomMonster:
     def __init__(self, room_id, monster: Monster):
         self.room_id = room_id
-        self.name: monster.name
-        self.hp: monster.hp
-        self.min_damage: monster._min_damage
-        self.max_damage: monster._max_damage
-        self.attack_speed: monster._attack_speed
-        self.hit_chance: monster._hit_chance
-        self.heal_chance: monster._heal_chance
-        self.min_heal: monster._min_heal
-        self.max_heal: monster._max_heal
+        self.name = monster.name
+        self.hp = monster.hp
+        self.min_damage = monster._min_damage
+        self.max_damage = monster._max_damage
+        self.attack_speed = monster._attack_speed
+        self.hit_chance = monster._hit_chance
+        self.heal_chance = monster.heal_chance
+        self.min_heal = monster.min_heal
+        self.max_heal = monster.max_heal
 
 class SqliteRoom:
     def __init__(self, position: Tuple[int, int], room: Room):
@@ -29,7 +33,7 @@ class SqliteRoom:
         self.has_vision_pot = room.hasVisionPot
         self.has_pillar = room.hasPillar
         self.pillar_type = room.pillarType
-        self.doors = room.doors.__str__()
+        self.doors = result = ','.join([str(door) for door in room.doors.values()])
         self.is_exit = room.isExit
         self.is_entrance = room.isEntrance
 
@@ -46,15 +50,12 @@ class SqliteDungeon:
 class SqliteDungeonConfiguration(SqliteConfiguration):
     def __init__(self):
         SqliteConfiguration.__init__(self)
-
-    def save(self, dungeon: Dungeon):
-        SqliteConfiguration.__init__(self)
         SqliteConfiguration.open_db(self)
 
         cursor = self._con.cursor()
 
         # Create Dungeon
-        cursor.execute("CREATE TABLE IF NOT EXISTS dungeon ("
+        cursor.execute(f"CREATE TABLE IF NOT EXISTS dungeon ("
                        "dungeon_id TEXT PRIMARY KEY, "
                        "x_size INTEGER, "
                        "y_size INTEGER, "
@@ -65,7 +66,7 @@ class SqliteDungeonConfiguration(SqliteConfiguration):
                        )
 
         # Get Dungeon Rooms
-        cursor.execute("CREATE TABLE IF NOT EXISTS dungeon_room ("
+        cursor.execute(f"CREATE TABLE IF NOT EXISTS dungeon_rooms ("
                        "room_id TEXT PRIMARY KEY, "
                        "x_pos INTEGER, "
                        "y_pos INTEGER, "
@@ -80,7 +81,7 @@ class SqliteDungeonConfiguration(SqliteConfiguration):
                        )
 
         #Get Dungeon Monster
-        cursor.execute("CREATE TABLE IF NOT EXISTS dungeon_room_monster ("
+        cursor.execute(f"CREATE TABLE IF NOT EXISTS dungeon_room_monster ("
                        "room_id TEXT, "
                        "name TEXT, "
                        "hp INTEGER,"
@@ -92,19 +93,127 @@ class SqliteDungeonConfiguration(SqliteConfiguration):
                        "min_heal INTEGER,"
                        "max_heal INTEGER)"
                        )
+        SqliteConfiguration.close_db(self)
 
-        cursor.execute("DELETE FROM dungeon")
-        cursor.execute("DELETE FROM dungeon_room")
-        cursor.execute("DELETE FROM dungeon_room_monster")
+    def save(self, dungeon: Dungeon):
+        SqliteConfiguration.open_db(self)
+
+        cursor = self._con.cursor()
+        cursor.execute(f"DELETE FROM dungeon")
+        cursor.execute(f"DELETE FROM dungeon_rooms")
+        cursor.execute(f"DELETE FROM dungeon_room_monster")
 
         sqlite_dungeon = SqliteDungeon(dungeon)
-        cursor.execute("INSERT INTO dungeon VALUES (?, ?, ?, ?, ?, ?, ?)", sqlite_dungeon)
+        cursor.execute(f"INSERT INTO dungeon VALUES (?, ?, ?, ?, ?, ?, ?)", (
+            sqlite_dungeon.dungeon_id,
+            sqlite_dungeon.x_size,
+            sqlite_dungeon.y_size,
+            sqlite_dungeon.entrance_x,
+            sqlite_dungeon.entrance_y,
+            sqlite_dungeon.exit_x,
+            sqlite_dungeon.exit_y))
 
         for x in range(dungeon.size[0]):
             for y in range(dungeon.size[1]):
                 room = dungeon.get_room(x, y)
-                sqlite_room = SqliteRoom(room)
-                cursor.execute("INSERT INTO dungeon_room VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", sqlite_dungeon)
+                sqlite_room = SqliteRoom((x,y),room)
+                cursor.execute(f"INSERT INTO dungeon_rooms VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (
+                    sqlite_room.room_id,
+                    sqlite_room.x_pos,
+                    sqlite_room.y_pos,
+                    sqlite_room.has_pit,
+                    sqlite_room.has_health_pot,
+                    sqlite_room.has_vision_pot,
+                    sqlite_room.has_pillar,
+                    sqlite_room.pillar_type,
+                    sqlite_room.doors,
+                    sqlite_room.is_exit,
+                    sqlite_room.is_entrance,
+                ))
                 if room.monster is not None:
                     sqlite_monster = SqliteRoomMonster(sqlite_room.room_id, room.monster)
-                    cursor.execute("INSERT INTO dungeon_room_monster VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", sqlite_monster)
+                    cursor.execute(f"INSERT INTO dungeon_room_monster VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (
+                        sqlite_monster.room_id,
+                        sqlite_monster.name,
+                        sqlite_monster.hp,
+                        sqlite_monster.min_damage,
+                        sqlite_monster.max_damage,
+                        sqlite_monster.attack_speed,
+                        sqlite_monster.hit_chance,
+                        sqlite_monster.heal_chance,
+                        sqlite_monster.min_heal,
+                        sqlite_monster.max_heal
+                    ))
+        self._con.commit()
+        SqliteConfiguration.close_db(self)
+
+    def load(self):
+        SqliteConfiguration.open_db(self)
+        cursor = self._con.cursor()
+        sqlite_dungeon = self.load_dungeon(cursor)
+        sqlite_rooms = self.load_dungeon_rooms(cursor)
+
+        dungeon = Dungeon()
+        dungeon.size = (sqlite_dungeon[1], sqlite_dungeon[2])
+        dungeon.maze = [[Room() for _ in range(dungeon.size[0])] for _ in range(dungeon.size[1])]
+        dungeon.entrance = (sqlite_dungeon[3], sqlite_dungeon[4])
+        dungeon.exit= (sqlite_dungeon[5], sqlite_dungeon[6])
+
+        for sql_room in sqlite_rooms:
+            room = Room()
+            room.hasPit = sql_room[3] == 1
+            room.hasHealthPot = sql_room[4] == 1
+            room.hasVision = sql_room[5] == 1
+            room.hasPillar = sql_room[6] == 1
+            room.pillarType = sql_room[7]
+            has_door = sql_room[8].split(",")
+            doors = {
+                'N': has_door[0]== "True", 'S': has_door[1]== "True",
+                'E': has_door[2]== "True", 'W': has_door[3]== "True"
+            }
+            room.doors = doors
+            room.isExit = sql_room[9] == 1
+            room.isEntrance = sql_room[10] == 1
+
+            sql_monster = self.load_dungeon_room_monster(cursor, sql_room[0])
+            if(sql_monster is not None):
+                monster = MonsterFactory.create_monster(
+                    sql_monster[1],
+                    sql_monster[2],
+                    sql_monster[3],
+                    sql_monster[4],
+                    sql_monster[5],
+                    sql_monster[6],
+                    sql_monster[7],
+                    sql_monster[8],
+                    sql_monster[9]
+                )
+                room.monster = monster
+
+            dungeon.maze[sql_room[2]][sql_room[1]] = room
+
+
+        SqliteConfiguration.close_db(self)
+        return GameData(dungeon, None)
+
+    def load_dungeon(self, cursor):
+        SqliteConfiguration.open_db(self)
+        monsters = []
+        cursor.execute(f"SELECT * FROM dungeon")
+        rows = cursor.fetchall()
+
+        return rows[0]
+
+    def load_dungeon_rooms(self, cursor):
+        cursor.execute(f"SELECT * FROM dungeon_rooms")
+        sql_rooms = cursor.fetchall()
+
+        return sql_rooms
+
+    def load_dungeon_room_monster(self, cursor, room_id):
+        monsters = []
+        cursor.execute("SELECT * FROM dungeon_room_monster WHERE room_id = ?", (room_id,))
+        monster = cursor.fetchall()
+        if len(monster) == 0:
+            return None
+        return monster[0]
