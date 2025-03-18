@@ -12,9 +12,9 @@ class Monster(DungeonCharacter, ABC):
     as the foundation for specific monster types like Ogre, Skeleton, and Gremlin.
 
     Attributes:
-        _heal_chance (float): Probability of healing after taking damage
-        _min_heal (int): Minimum amount of healing when triggered
-        _max_heal (int): Maximum amount of healing when triggered
+        heal_chance (float): Probability of healing after taking damage
+        min_heal (int): Minimum amount of healing when triggered
+        max_heal (int): Maximum amount of healing when triggered
     """
 
     def __init__(self,
@@ -42,9 +42,9 @@ class Monster(DungeonCharacter, ABC):
             max_heal (int): Maximum healing amount
         """
         super().__init__(name, hp, min_damage, max_damage, attack_speed, hit_chance)
-        self._heal_chance = heal_chance
-        self._min_heal = min_heal
-        self._max_heal = max_heal
+        self.heal_chance = heal_chance
+        self.min_heal = min_heal
+        self.max_heal = max_heal
 
     def take_damage(self, amount: int) -> int:
         """
@@ -65,8 +65,8 @@ class Monster(DungeonCharacter, ABC):
         damage_taken = old_hp - self.hp
 
         # Try to heal if still alive
-        if self.is_alive and random.random() < self._heal_chance:
-            heal_amount = random.randint(self._min_heal, self._max_heal)
+        if self.is_alive and random.random() < self.heal_chance:
+            heal_amount = random.randint(self.min_heal, self.max_heal)
             old_hp = self.hp
             self.hp += heal_amount
             actual_heal = self.hp - old_hp
@@ -84,5 +84,5 @@ class Monster(DungeonCharacter, ABC):
             str: String describing the monster and its healing abilities
         """
         return (f"{super().__str__()} | "
-                f"Heal Chance: {self._heal_chance * 100}% | "
-                f"Heal Amount: {self._min_heal}-{self._max_heal}")
+                f"Heal Chance: {self.heal_chance * 100}% | "
+                f"Heal Amount: {self.min_heal}-{self.max_heal}")
