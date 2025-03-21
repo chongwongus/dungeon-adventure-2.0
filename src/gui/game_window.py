@@ -6,6 +6,8 @@ from .constants import *
 from .components import EventLog, StatsDisplay, MiniMap, CombatUI
 from .components.first_person_view import FirstPersonView
 from src.combat.combat_system import CombatSystem
+from ..database.sqlite_dungeon_configuration import SqliteDungeonConfiguration
+from ..database.sqlite_hero_configuration import SqliteHeroConfiguration
 
 
 class GameWindow:
@@ -66,6 +68,8 @@ class GameWindow:
         # Store references
         self.dungeon = dungeon
         self.hero = hero
+        self.dungeon_persistence = SqliteDungeonConfiguration()
+        self.hero_persistence = SqliteHeroConfiguration()
 
         # Track hero's facing direction (start facing east)
         self.hero_direction = 'E'
@@ -274,6 +278,17 @@ class GameWindow:
                     len(self.event_log.messages) - 10,
                     self.event_log.scroll_position + 1
                 )
+
+            if event.key == pygame.K_q:
+                print("quitting")
+                self.dungeon_persistence.save(self.dungeon)
+                self.hero_persistence.save(self.hero)
+                self.event_log.add_message(
+                    "Game Saved!",
+                    "system", True
+                )
+                return False
+
         return True
 
     def _handle_movement_result(self, success: bool, messages: List[str], combat, direction: str):

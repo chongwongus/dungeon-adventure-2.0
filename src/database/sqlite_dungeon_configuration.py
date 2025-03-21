@@ -2,8 +2,10 @@ import uuid
 from typing import Tuple
 
 from src.characters.base.monster import Monster
+from src.characters.heroes.hero_factory import HeroFactory
 from src.characters.monsters.monster_factory import MonsterFactory
 from src.database.sqlite_configuration import SqliteConfiguration
+from src.database.sqlite_hero_configuration import SqliteHeroConfiguration
 from src.database.sqlite_table_constants import TableConstants
 from src.dungeon.dungeon import Dungeon
 from src.dungeon.room import Room
@@ -95,13 +97,24 @@ class SqliteDungeonConfiguration(SqliteConfiguration):
                        )
         SqliteConfiguration.close_db(self)
 
-    def save(self, dungeon: Dungeon):
+    def clear_db(self):
         SqliteConfiguration.open_db(self)
 
         cursor = self._con.cursor()
+
         cursor.execute(f"DELETE FROM dungeon")
         cursor.execute(f"DELETE FROM dungeon_rooms")
         cursor.execute(f"DELETE FROM dungeon_room_monster")
+
+        self._con.commit()
+        SqliteConfiguration.close_db(self)
+
+    def save(self, dungeon: Dungeon):
+        self.clear_db()
+
+        SqliteConfiguration.open_db(self)
+
+        cursor = self._con.cursor()
 
         sqlite_dungeon = SqliteDungeon(dungeon)
         cursor.execute(f"INSERT INTO dungeon VALUES (?, ?, ?, ?, ?, ?, ?)", (
@@ -148,10 +161,14 @@ class SqliteDungeonConfiguration(SqliteConfiguration):
         SqliteConfiguration.close_db(self)
 
     def load(self):
+        print("Loading Dungeon")
         SqliteConfiguration.open_db(self)
         cursor = self._con.cursor()
         sqlite_dungeon = self.load_dungeon(cursor)
         sqlite_rooms = self.load_dungeon_rooms(cursor)
+
+        if sqlite_dungeon is None:
+            return False
 
         dungeon = Dungeon()
         dungeon.size = (sqlite_dungeon[1], sqlite_dungeon[2])
@@ -193,16 +210,27 @@ class SqliteDungeonConfiguration(SqliteConfiguration):
             dungeon.maze[sql_room[2]][sql_room[1]] = room
 
 
+        print("Loading Hero")
+
+        hero_config = SqliteHeroConfiguration()
+        hero = hero_config.load()
+
+        print(hero)
+
+        if hero is None:
+            print("No Hero found")
+            self.clear_db(cursor)
         SqliteConfiguration.close_db(self)
-        return GameData(dungeon, None)
+        return GameData(dungeon, hero)
 
     def load_dungeon(self, cursor):
         SqliteConfiguration.open_db(self)
         monsters = []
         cursor.execute(f"SELECT * FROM dungeon")
         rows = cursor.fetchall()
-
-        return rows[0]
+        print(rows)
+        if len(rows) > 0:
+            return rows[0]
 
     def load_dungeon_rooms(self, cursor):
         cursor.execute(f"SELECT * FROM dungeon_rooms")

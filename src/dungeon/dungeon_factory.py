@@ -28,7 +28,6 @@ class DungeonFactory(ABC):
         dungeon generation. This allows for post-generation
         reference and validation of special game elements.
         """
-        self.pillar_locations = []  # List of (pillar_type, x, y) tuples
         self._monster_configuration = SqliteMonsterConfiguration()
         self._dungeon_config_service = DungeonConfigurationService(self._monster_configuration)
 
@@ -222,7 +221,6 @@ class DungeonFactory(ABC):
         Args:
             dungeon (Dungeon): The dungeon where pillars will be placed
         """
-        self.pillar_locations = []  # Reset pillar locations
         available_rooms = [(x, y) for x in range(dungeon.size[0])
                           for y in range(dungeon.size[1])
                           if (x, y) != dungeon.entrance and (x, y) != dungeon.exit]
@@ -239,7 +237,7 @@ class DungeonFactory(ABC):
                     pillar_rooms.append((x, y))
                     dungeon.maze[y][x].hasPillar = True
                     dungeon.maze[y][x].pillarType = pillar
-                    self.pillar_locations.append((pillar, x, y))  # Track pillar location
+                    dungeon.pillar_locations.append((pillar, x, y))  # Track pillar location
                     print(f"Placed pillar {pillar} at ({x}, {y})")
                 else:
                     print(f"Warning: Room ({x}, {y}) not reachable for pillar {pillar}")

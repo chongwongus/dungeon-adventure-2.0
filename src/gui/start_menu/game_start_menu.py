@@ -1,6 +1,5 @@
 import pygame
-
-from src.gui.start_menu.game_start_menu_helper import draw_button, draw_difficulty_selector
+from src.gui.start_menu.game_start_menu_helper import draw_menu_buttons, draw_difficulty_selector
 
 class GameMenu:
     """
@@ -31,7 +30,7 @@ class GameMenu:
        - Enables start button only when all requirements met
     """
 
-    def __init__(self, screen):
+    def __init__(self, screen, save_data):
         """
         Manages the comprehensive game initialization interface.
 
@@ -60,6 +59,7 @@ class GameMenu:
            - Enables start button only when all requirements met
         """
         self.screen = screen
+        self.save_data = save_data
         self.font_large = pygame.font.Font(None, 64)  # Title
         self.font_medium = pygame.font.Font(None, 36)  # Hero names, buttons
         self.font_small = pygame.font.Font(None, 24)   # Descriptions
@@ -119,6 +119,7 @@ class GameMenu:
         self.hard_rect = None
 
         # Start button
+        self.load_rect = None
         self.start_rect = None
         self.can_start = False
 
@@ -175,6 +176,9 @@ class GameMenu:
             # Check start button
             if self.can_start and self.start_rect.collidepoint(mouse_pos):
                 return self.get_game_settings()
+
+            if self.save_data and self.load_rect.collidepoint(mouse_pos):
+                return self.load_game_settings()
 
         elif event.type == pygame.KEYDOWN and self.name_input_active:
             if event.key == pygame.K_BACKSPACE:
@@ -291,9 +295,16 @@ class GameMenu:
         draw_difficulty_selector(self)
 
         # Draw start button
-        draw_button(self)
+        draw_menu_buttons(self)
         pygame.display.flip()
 
+    def load_game_settings(self):
+        print("loading...")
+        return {
+            "hero_class": "load",
+            "player_name": "load",
+            "difficulty": "load"
+        }
     def get_game_settings(self):
         """
         Compile and return the final game configuration.

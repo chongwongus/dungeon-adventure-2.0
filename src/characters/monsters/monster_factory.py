@@ -14,8 +14,8 @@ class MonsterFactory():
                        attack_speed: int,
                        hit_chance: float,
                        heal_chance: float,
-                       min_heal: int,
-                       max_heal: int):
+                       max_heal: int,
+                       min_heal: int):
         monsters = {
             "gremlin": Gremlin(hp, min_damage,max_damage,attack_speed,hit_chance,heal_chance,min_heal,max_heal),
             "ogre": Ogre(hp, min_damage,max_damage,attack_speed,hit_chance,heal_chance,min_heal,max_heal),
@@ -30,7 +30,7 @@ class MonsterFactory():
         setattr(monster, 'attack_speed', attack_speed)
         setattr(monster, 'hit_chance', hit_chance)
         setattr(monster, 'heal_chance', heal_chance)
-        setattr(monster, 'min_heal', min_heal)
         setattr(monster, 'max_heal', max_heal)
+        setattr(monster, 'min_heal', min_heal)
         return monster
         

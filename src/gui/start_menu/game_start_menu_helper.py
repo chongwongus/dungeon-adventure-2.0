@@ -1,20 +1,31 @@
 import pygame
 
-def draw_button(self):
-    self.start_rect = pygame.Rect(
-        self.screen.get_width() // 2 - 100,
+def draw_menu_buttons(self):
+    offset = 150
+
+    if self.save_data:
+        self.start_rect = draw_button(self, "Start", self.can_start, offset)
+        self.load_rect = draw_button(self, "Load", True, -offset)
+
+    else:
+        self.start_rect = draw_button(self, "Start", self.can_start)
+
+def draw_button(self, label, is_active, offset = 0):
+    button = pygame.Rect(
+        self.screen.get_width() // 2 - 100 + offset,
         550,
         200,
         60
     )
 
-    start_color = (0, 128, 0) if self.can_start else (64, 64, 64)
-    pygame.draw.rect(self.screen, start_color, self.start_rect)
-    pygame.draw.rect(self.screen, (128, 128, 128), self.start_rect, 2)
+    start_color = (0, 128, 0) if is_active else (64, 64, 64)
+    pygame.draw.rect(self.screen, start_color, button)
+    pygame.draw.rect(self.screen, (128, 128, 128), button, 2)
 
-    start_text = self.font_medium.render("Start Game", True, (255, 255, 255))
-    self.screen.blit(start_text, (
-        self.start_rect.centerx - start_text.get_width() // 2, self.start_rect.centery - start_text.get_height() // 2))
+    text = self.font_medium.render(label, True, (255, 255, 255))
+    self.screen.blit(text, (
+        button.centerx - text.get_width() // 2, button.centery - text.get_height() // 2))
+    return button
 
 def draw_difficulty_selector(self):
     # Draw settings section (right side)

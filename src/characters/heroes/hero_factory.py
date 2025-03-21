@@ -33,12 +33,12 @@ class HeroFactory():
         for pillar in pillars.split(","):
             hero.collect_pillar(pillar)
         hero._active_vision = active_vision
-        hero._location = (loc_x, loc_y)
+        hero.location = (loc_x, loc_y)
         return hero
 
 class HeroTypes(Enum):
     # Dungeon Table Names
 
     PRIESTESS = "<class 'src.characters.heroes.priestess.Priestess'>"
-    THIEF = "<class 'src.characters.heroes.priestess.Thief'>"
-    WARRIOR = "<class 'src.characters.heroes.priestess.Warrior'>"
+    THIEF = "<class 'src.characters.heroes.thief.Thief'>"
+    WARRIOR = "<class 'src.characters.heroes.warrior.Warrior'>"
