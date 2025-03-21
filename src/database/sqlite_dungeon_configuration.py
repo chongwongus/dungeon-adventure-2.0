@@ -97,18 +97,24 @@ class SqliteDungeonConfiguration(SqliteConfiguration):
                        )
         SqliteConfiguration.close_db(self)
 
-    def clear_db(self, cursor):
+    def clear_db(self):
+        SqliteConfiguration.open_db(self)
+
+        cursor = self._con.cursor()
+
         cursor.execute(f"DELETE FROM dungeon")
         cursor.execute(f"DELETE FROM dungeon_rooms")
         cursor.execute(f"DELETE FROM dungeon_room_monster")
 
         self._con.commit()
+        SqliteConfiguration.close_db(self)
 
     def save(self, dungeon: Dungeon):
+        self.clear_db()
+
         SqliteConfiguration.open_db(self)
 
         cursor = self._con.cursor()
-        self.clear_db(cursor)
 
         sqlite_dungeon = SqliteDungeon(dungeon)
         cursor.execute(f"INSERT INTO dungeon VALUES (?, ?, ?, ?, ?, ?, ?)", (

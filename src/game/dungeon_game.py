@@ -83,9 +83,9 @@ class DungeonGame:
         self.state = None
         self.save_data = None
 
-        dungeon_config = SqliteDungeonConfiguration()
+        self.dungeon_config = SqliteDungeonConfiguration()
 
-        self.save_data = dungeon_config.load()
+        self.save_data = self.dungeon_config.load()
 
         pygame.init()
         self.screen = pygame.display.set_mode((1024, 768))
@@ -153,6 +153,7 @@ class DungeonGame:
         - Allows multiple hero types
         - Enables dynamic game initialization
         """
+        self.dungeon_config.clear_db()
         factory_class = EasyDungeonFactory if settings['difficulty'] == 'easy' else DFSDungeonFactory
         factory = factory_class()
         self.dungeon = factory.create()
@@ -168,7 +169,7 @@ class DungeonGame:
         self.hero.location = self.dungeon.entrance
 
         # Initialize game window with hero reference
-        self.game_window = GameWindow(self.dungeon, factory.pillar_locations, self.hero)
+        self.game_window = GameWindow(self.dungeon, self.dungeon.pillar_locations, self.hero)
         self.game_window.event_log.add_message(f"Welcome, {self.hero.name}!")
 
         # Set game state to playing

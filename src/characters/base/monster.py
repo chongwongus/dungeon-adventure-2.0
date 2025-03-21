@@ -66,6 +66,8 @@ class Monster(DungeonCharacter, ABC):
 
         # Try to heal if still alive
         if self.is_alive and random.random() < self.heal_chance:
+            print(self.min_heal)
+            print(self.max_heal)
             heal_amount = random.randint(self.min_heal, self.max_heal)
             old_hp = self.hp
             self.hp += heal_amount
