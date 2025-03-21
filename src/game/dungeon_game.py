@@ -3,6 +3,8 @@ import pygame
 from src.characters.heroes.priestess import Priestess
 from src.characters.heroes.thief import Thief
 from src.characters.heroes.warrior import Warrior
+from src.database.sqlite_dungeon_configuration import SqliteDungeonConfiguration
+from src.database.sqlite_hero_configuration import SqliteHeroConfiguration
 from src.dungeon.dfs_factory import DFSDungeonFactory
 from src.dungeon.easy_factory import EasyDungeonFactory
 from src.game.game_state import GameState
@@ -79,6 +81,11 @@ class DungeonGame:
         self.game_window = None
         self.menu = None
         self.state = None
+        self.save_data = None
+
+        dungeon_config = SqliteDungeonConfiguration()
+
+        self.save_data = dungeon_config.load()
 
         pygame.init()
         self.screen = pygame.display.set_mode((1024, 768))
@@ -101,7 +108,7 @@ class DungeonGame:
         4. Prepare for new game configuration
         """
         self.state = GameState.MENU
-        self.menu = GameMenu(self.screen)
+        self.menu = GameMenu(self.screen, self.save_data)
         self.game_window = None
         self.dungeon = None
         self.hero = None
@@ -167,8 +174,19 @@ class DungeonGame:
         # Set game state to playing
         self.state = GameState.PLAYING
 
-    def save_game(self):
-        self.hero
+    def load_game(self):
+        self.dungeon = self.save_data.dungeon
+        self.hero = self.save_data.hero
+
+        print(self.save_data.hero.location)
+        print(self.save_data.dungeon)
+
+        # Initialize game window with hero reference
+        self.game_window = GameWindow(self.dungeon, self.dungeon.pillar_locations, self.hero)
+        self.game_window.event_log.add_message(f"Welcome, {self.hero.name}!")
+
+        # Set game state to playing
+        self.state = GameState.PLAYING
 
     def handle_menu(self):
         """
@@ -194,7 +212,11 @@ class DungeonGame:
             # Check if menu is complete and game should start
             settings = self.menu.get_game_settings()
             if settings:
-                self.init_game(settings)
+                print(settings)
+                if settings["hero_class"] == "load":
+                    self.load_game()
+                else:
+                    self.init_game(settings)
 
         self.menu.draw()
         return True
@@ -308,7 +330,10 @@ class DungeonGame:
 
                     settings = self.menu.handle_event(event)
                     if settings:
-                        self.init_game(settings)
+                        if settings["hero_class"] == "load":
+                            self.load_game()
+                        else:
+                            self.init_game(settings)
                         break
 
                 self.menu.draw()

@@ -52,13 +52,14 @@ class SqliteHeroConfiguration(SqliteConfiguration):
         SqliteConfiguration.open_db(self)
 
         hero = None;
-        hero_factory = HeroFactory()
 
         cursor = self._con.cursor()
         cursor.execute("SELECT * FROM hero")
         row = cursor.fetchone()
-        if row is not None:
-            hero = hero_factory.create(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8])
+        print(row)
+        if len(row) > 0:
+            hero = HeroFactory.create(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8])
         self._con.commit()
         SqliteConfiguration.close_db(self)
+        print(hero.location)
         return hero

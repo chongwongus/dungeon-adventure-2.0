@@ -37,6 +37,7 @@ class Dungeon:
         self.maze: List[List[Room]] = [[Room() for _ in range(size[0])] for _ in range(size[1])]
         self.entrance: Optional[Tuple[int, int]] = None
         self.exit: Optional[Tuple[int, int]] = None
+        self.pillar_locations = []  # List of (pillar_type, x, y) tuples
 
     def reveal_adjacent_rooms(self, center_pos: Tuple[int, int]) -> List[Tuple[int, int]]:
         """

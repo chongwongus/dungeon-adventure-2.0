@@ -16,3 +16,4 @@ mypy>=1.5.1  # Type checking
 sqlalchemy>=1.4.0  # ORM for database access
 
 # Note: versions are suggested minimums
+pygame~=2.6.1
