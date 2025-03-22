@@ -38,6 +38,7 @@ class SqliteRoom:
         self.doors = result = ','.join([str(door) for door in room.doors.values()])
         self.is_exit = room.isExit
         self.is_entrance = room.isEntrance
+        self.visited = room.visited
 
 class SqliteDungeon:
     def __init__(self, dungeon: Dungeon):
@@ -79,7 +80,8 @@ class SqliteDungeonConfiguration(SqliteConfiguration):
                        "pillar_type BOOLEAN, "
                        "doors TEXT, "
                        "is_exit BOOLEAN, "
-                       "is_entrance BOOLEAN)"
+                       "is_entrance BOOLEAN, "
+                       "visited BOOLEAN)"
                        )
 
         #Get Dungeon Monster
@@ -130,7 +132,7 @@ class SqliteDungeonConfiguration(SqliteConfiguration):
             for y in range(dungeon.size[1]):
                 room = dungeon.get_room(x, y)
                 sqlite_room = SqliteRoom((x,y),room)
-                cursor.execute(f"INSERT INTO dungeon_rooms VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (
+                cursor.execute(f"INSERT INTO dungeon_rooms VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (
                     sqlite_room.room_id,
                     sqlite_room.x_pos,
                     sqlite_room.y_pos,
@@ -142,6 +144,7 @@ class SqliteDungeonConfiguration(SqliteConfiguration):
                     sqlite_room.doors,
                     sqlite_room.is_exit,
                     sqlite_room.is_entrance,
+                    sqlite_room.visited
                 ))
                 if room.monster is not None:
                     sqlite_monster = SqliteRoomMonster(sqlite_room.room_id, room.monster)
@@ -191,6 +194,7 @@ class SqliteDungeonConfiguration(SqliteConfiguration):
             room.doors = doors
             room.isExit = sql_room[9] == 1
             room.isEntrance = sql_room[10] == 1
+            room.visited = sql_room[11] == 1
 
             sql_monster = self.load_dungeon_room_monster(cursor, sql_room[0])
             if(sql_monster is not None):
