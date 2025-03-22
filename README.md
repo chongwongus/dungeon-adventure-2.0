@@ -105,7 +105,7 @@ python -m unittest discover tests
 
 ## 👥 Development
 
-This project was developed as part of TCSS 502 - Object-Oriented Programming, showcasing:
+This project was developed as part of TCSS 504, showcasing:
 
 - Advanced OOP principles
 - Database integration
